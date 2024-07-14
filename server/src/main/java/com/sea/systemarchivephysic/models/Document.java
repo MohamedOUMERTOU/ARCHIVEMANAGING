@@ -1,9 +1,6 @@
 package com.sea.systemarchivephysic.models;
 
 import jakarta.persistence.*;
-
-
-
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -27,16 +24,25 @@ public class Document {
     )
     private Set<Operation> operations = new HashSet<>();
 
-    public Document(Set<Operation> operations, String status, Date date, String source, String description, String name) {
-        this.operations = operations;
-        this.status = status;
-        this.date = date;
-        this.source = source;
-        this.description = description;
+    @ManyToOne
+    @JoinColumn(name = "type_id")
+    private RefTypedoc refTypedoc;
+
+    public Document() {}
+
+    public Document(String name, String description, String source, Date date, String status, Set<Operation> operations, RefTypedoc refTypedoc) {
         this.name = name;
+        this.description = description;
+        this.source = source;
+        this.date = date;
+        this.status = status;
+        this.operations = operations;
+        this.refTypedoc = refTypedoc;
     }
 
-public Document() {}
+    public long getIdDoc() {
+        return idDoc;
+    }
 
     public void setIdDoc(long idDoc) {
         this.idDoc = idDoc;
@@ -89,5 +95,12 @@ public Document() {}
     public void setOperations(Set<Operation> operations) {
         this.operations = operations;
     }
-}
 
+    public RefTypedoc getRefTypedoc() {
+        return refTypedoc;
+    }
+
+    public void setRefTypedoc(RefTypedoc refTypedoc) {
+        this.refTypedoc = refTypedoc;
+    }
+}

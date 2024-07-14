@@ -1,9 +1,6 @@
 package com.sea.systemarchivephysic.models;
 
-
 import jakarta.persistence.*;
-
-
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -25,6 +22,8 @@ public class Operation {
 
     @ManyToMany(mappedBy = "operations")
     private Set<Document> documents = new HashSet<>();
+    @ManyToMany(mappedBy = "operations")
+    private Set<Metadata> metadatas = new HashSet<>();
 
     public Operation() {}
 
@@ -37,16 +36,28 @@ public class Operation {
         this.date = date;
     }
 
-    public Set<Document> getDocuments() {
-        return documents;
+    public long getIdOperation() {
+        return idOperation;
     }
 
     public void setIdOperation(long idOperation) {
         this.idOperation = idOperation;
     }
 
+    public Set<Document> getDocuments() {
+        return documents;
+    }
+
     public void setDocuments(Set<Document> documents) {
         this.documents = documents;
+    }
+
+    public Set<Metadata> getMetadatas() {
+        return metadatas;
+    }
+
+    public void setMetadatas(Set<Metadata> metadatas) {
+        this.metadatas = metadatas;
     }
 
     public String getDestinataire() {
@@ -65,11 +76,11 @@ public class Operation {
         this.description = description;
     }
 
-    public AppUser getUser() {
+    public AppUser getAppUser() {
         return appUser;
     }
 
-    public void setUser(AppUser appUser) {
+    public void setAppUser(AppUser appUser) {
         this.appUser = appUser;
     }
 

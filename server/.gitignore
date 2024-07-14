@@ -35,3 +35,9 @@ out/
 
 ### VS Code ###
 .vscode/
+
+# Custom additions to ignore properties files
+
+*.properties
+*.yml
+*.yaml

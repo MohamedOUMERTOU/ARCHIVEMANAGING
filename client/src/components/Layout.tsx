@@ -1,13 +1,13 @@
 import {
-   MenuFoldOutlined,
-   MenuUnfoldOutlined,
-   UploadOutlined,
-   UserOutlined,
-   VideoCameraOutlined,
-} from '@ant-design/icons';
-import { Button, Layout, Menu, theme } from 'antd';
-import React, { useState } from 'react';
-import { Outlet } from 'react-router-dom';
+  MenuFoldOutlined,
+  MenuUnfoldOutlined,
+  UploadOutlined,
+  UserOutlined,
+  VideoCameraOutlined,
+} from "@ant-design/icons";
+import { Button, Layout, Menu, theme } from "antd";
+import React, { useState } from "react";
+import { Outlet } from "react-router-dom";
 
 const { Header, Sider, Content } = Layout;
 
@@ -24,22 +24,22 @@ const SELayout: React.FC = () => {
         <Menu
           theme="dark"
           mode="inline"
-          defaultSelectedKeys={['1']}
+          defaultSelectedKeys={["1"]}
           items={[
             {
-              key: '1',
+              key: "1",
               icon: <UserOutlined />,
-              label: 'nav 1',
+              label: "nav 1",
             },
             {
-              key: '2',
+              key: "2",
               icon: <VideoCameraOutlined />,
-              label: 'nav 2',
+              label: "nav 2",
             },
             {
-              key: '3',
+              key: "3",
               icon: <UploadOutlined />,
-              label: 'nav 3',
+              label: "nav 3",
             },
           ]}
         />
@@ -51,7 +51,7 @@ const SELayout: React.FC = () => {
             icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
             onClick={() => setCollapsed(!collapsed)}
             style={{
-              fontSize: '16px',
+              fontSize: "16px",
               width: 64,
               height: 64,
             }}
@@ -59,14 +59,14 @@ const SELayout: React.FC = () => {
         </Header>
         <Content
           style={{
-            margin: '24px 16px',
+            margin: "24px 16px",
             padding: 24,
             minHeight: 280,
             background: colorBgContainer,
             borderRadius: borderRadiusLG,
           }}
         >
-          <Outlet/>
+          <Outlet />
         </Content>
       </Layout>
     </Layout>

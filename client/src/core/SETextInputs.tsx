@@ -1,6 +1,8 @@
-import React, { ChangeEvent, FocusEvent } from 'react';
+import React from 'react';
+import { Input } from 'antd';
+import type { InputProps } from 'antd/lib/input';
 
-interface SETextInputProps {
+interface SETextInputProps extends Omit<InputProps, 'onChange'> {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
@@ -20,19 +22,19 @@ const SETextInput: React.FC<SETextInputProps> = ({
   id,
   autoFocus,
   tabIndex,
+  ...restProps
 }) => {
 
-  const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     onChange(event.target.value);
   };
 
-  const handleBlur = (event: FocusEvent<HTMLInputElement>) => {
+  const handleBlur = (event: React.FocusEvent<HTMLInputElement>) => {
     // Optional: Handle onBlur events if needed
   };
 
   return (
-    <input
-      type="text"
+    <Input
       className={`se-text-input ${className}`}
       value={value}
       onChange={handleChange}
@@ -42,6 +44,7 @@ const SETextInput: React.FC<SETextInputProps> = ({
       id={id}
       autoFocus={autoFocus}
       tabIndex={tabIndex}
+      {...restProps} // Spread remaining props to Ant Design Input component
     />
   );
 };

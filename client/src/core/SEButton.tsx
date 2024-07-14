@@ -1,5 +1,5 @@
-import React, { FC } from 'react';
 import { Button } from 'antd';
+import { FC } from 'react';
 
 interface SEButtonProps {
   label: string;
@@ -33,7 +33,6 @@ const SEButton: FC<SEButtonProps> = ({
     <Button
       onClick={handleClick}
       disabled={disabled}
-      type={type}
       id={id}
       data-testid={dataTestId}
       aria-label={ariaLabel}

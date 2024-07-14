@@ -1,12 +1,14 @@
-import React, { Component }  from 'react';
+import React from 'react';
+import { Route, Routes } from 'react-router-dom';
 import SELayout from './components/Layout';
 
-function App() {
+const App: React.FC = () => {
   return (
-    <>
-      <SELayout/>
-    </>
+    <Routes>
+      <Route path="/" element={<SELayout />}>
+      </Route>
+    </Routes>
   );
-}
+};
 
 export default App;

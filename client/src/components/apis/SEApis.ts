@@ -1,11 +1,12 @@
 import { SECore } from "./SECore";
-
-export const fetchExampleData = async (url: any) => {
-  return await SECore.get(url)
+export const getMenus = async () => {
+  return await SECore.get("/menus")
     .then((res) => {
-      console.table(res);
+      console.log(res);
     })
     .catch((err) => {
       console.log("Error:" + err);
     });
 };
+
+

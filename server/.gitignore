@@ -38,6 +38,6 @@ out/
 
 # Custom additions to ignore properties files
 
-*.properties
+resources/*.properties
 *.yml
 *.yaml

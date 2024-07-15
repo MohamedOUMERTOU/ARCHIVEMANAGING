@@ -6,12 +6,17 @@ import {
   VideoCameraOutlined,
 } from "@ant-design/icons";
 import { Button, Layout, Menu, theme } from "antd";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Outlet } from "react-router-dom";
+import { Icons } from "../core/SEIcons";
+import { getMenus } from "./apis/SEApis";
 
 const { Header, Sider, Content } = Layout;
 
 const SELayout: React.FC = () => {
+  useEffect(()=> {
+    getMenus()
+  })
   const [collapsed, setCollapsed] = useState(false);
   const {
     token: { colorBgContainer, borderRadiusLG },
@@ -66,8 +71,10 @@ const SELayout: React.FC = () => {
             borderRadius: borderRadiusLG,
           }}
         >
+          <Icons.PlusCircleIcon className='red' />
           <Outlet />
         </Content>
+
       </Layout>
     </Layout>
   );

@@ -1,5 +1,4 @@
-SELECT * FROM MENU
-DELETE FROM MENU
+
 INSERT INTO MENU VALUES (1,'Paramètrage','Paramètrage',null)
 INSERT INTO MENU VALUES (2,'Archivage','Archivage',null)
 INSERT INTO MENU VALUES (3,'Recherche','Recherche',2)

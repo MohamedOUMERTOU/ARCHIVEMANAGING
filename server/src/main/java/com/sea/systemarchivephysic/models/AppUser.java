@@ -1,37 +1,57 @@
 package com.sea.systemarchivephysic.models;
 
 import jakarta.persistence.*;
+import java.util.Set;
 
 @Entity
 @Table(name = "app_user")
 public class AppUser {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_user")
     private long idUser;
+
     private String username;
     private String password;
 
-    @ManyToOne
-    @JoinColumn(name = "profile_id")
-    private Profile profile;
+    @ManyToMany
+    @JoinTable(
+            name = "user_permission",
+            joinColumns = @JoinColumn(name = "id_user"),
+            inverseJoinColumns = @JoinColumn(name = "id_permission")
+    )
+    private Set<Permission> permissions;
+    @ManyToMany
+    @JoinTable(
+            name = "user_menu",
+            joinColumns = @JoinColumn(name = "id_user"),
+            inverseJoinColumns = @JoinColumn(name = "id_menu")
+    )
+    private Set<Menu> menus;
 
-    public AppUser(Profile profile, String username, String password) {
-        this.profile = profile;
+    public AppUser() {
+    }
+
+    public AppUser(String username, String password) {
         this.username = username;
         this.password = password;
     }
-    public AppUser() {}
+
+    public long getIdUser() {
+        return idUser;
+    }
 
     public void setIdUser(long idUser) {
         this.idUser = idUser;
     }
 
-    public Profile getProfile() {
-        return profile;
+    public String getUsername() {
+        return username;
     }
 
-    public void setProfile(Profile profile) {
-        this.profile = profile;
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public String getPassword() {
@@ -42,11 +62,21 @@ public class AppUser {
         this.password = password;
     }
 
-    public String getUsername() {
-        return username;
+    public Set<Permission> getPermissions() {
+        return permissions;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    public void setPermissions(Set<Permission> permissions) {
+        this.permissions = permissions;
     }
+
+
+    public Set<Menu> getMenus() {
+        return menus;
+    }
+
+    public void setMenus(Set<Menu> menus) {
+        this.menus = menus;
+    }
+
 }

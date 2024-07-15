@@ -1,5 +1,7 @@
 package com.sea.systemarchivephysic.models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import java.util.Set;
 import java.util.List;
@@ -22,9 +24,11 @@ public class Menu {
 
     @ManyToOne
     @JoinColumn(name = "parent_id")
+    @JsonBackReference
     private Menu parentMenu;
 
     @OneToMany(mappedBy = "parentMenu")
+    @JsonManagedReference
     private List<Menu> subMenus;
 
     public Menu() {

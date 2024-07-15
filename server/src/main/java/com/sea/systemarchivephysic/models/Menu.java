@@ -2,6 +2,7 @@ package com.sea.systemarchivephysic.models;
 
 import jakarta.persistence.*;
 import java.util.Set;
+import java.util.List;
 
 @Entity
 @Table(name = "menu")
@@ -18,6 +19,13 @@ public class Menu {
 
     @ManyToMany(mappedBy = "menus")
     private Set<AppUser> users;
+
+    @ManyToOne
+    @JoinColumn(name = "parent_id")
+    private Menu parentMenu;
+
+    @OneToMany(mappedBy = "parentMenu")
+    private List<Menu> subMenus;
 
     public Menu() {
     }
@@ -57,5 +65,21 @@ public class Menu {
 
     public void setUsers(Set<AppUser> users) {
         this.users = users;
+    }
+
+    public Menu getParentMenu() {
+        return parentMenu;
+    }
+
+    public void setParentMenu(Menu parentMenu) {
+        this.parentMenu = parentMenu;
+    }
+
+    public List<Menu> getSubMenus() {
+        return subMenus;
+    }
+
+    public void setSubMenus(List<Menu> subMenus) {
+        this.subMenus = subMenus;
     }
 }

@@ -70,7 +70,6 @@ public class AppUser {
         this.permissions = permissions;
     }
 
-
     public Set<Menu> getMenus() {
         return menus;
     }
@@ -78,5 +77,4 @@ public class AppUser {
     public void setMenus(Set<Menu> menus) {
         this.menus = menus;
     }
-
 }

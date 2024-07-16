@@ -1,12 +1,12 @@
+// In SEApis.ts or wherever you define your API functions
 import { SECore } from "./SECore";
+
 export const getMenus = async () => {
-  return await SECore.get("/menus")
-    .then((res) => {
-      console.log(res);
-    })
-    .catch((err) => {
-      console.log("Error:" + err);
-    });
+  try {
+    const response:any = await SECore.get("/menus");
+    return response;
+  } catch (error) {
+    console.error("Error fetching menus:", error);
+    return [];
+  }
 };
-
-

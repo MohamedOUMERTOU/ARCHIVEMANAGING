@@ -1,8 +1,20 @@
 // src/core/SEIcons.tsx
 
-import { PlusCircleFilled } from '@ant-design/icons';
-import React from 'react';
+import {
+  SettingOutlined,
+  FileDoneOutlined,
+  UserOutlined,
+  GoldOutlined,
+  FileSearchOutlined,
+  FolderOutlined,
+} from "@ant-design/icons";
+import React from "react";
 
 export const Icons = {
-   PlusCircleIcon: (props:any) => <PlusCircleFilled {...props} />
+  SettingOutlined: (props: any) => <SettingOutlined {...props} />,
+  FileDoneOutlined: (props: any) => <FileDoneOutlined {...props} />,
+  UserOutlined: (props: any) => <UserOutlined {...props} />,
+  GoldOutlined: (props: any) => <GoldOutlined {...props} />,
+  FileSearchOutlined: (props: any) => <FileSearchOutlined {...props} />,
+  FolderOutlined: (props: any) => <FolderOutlined {...props} />,
 };

@@ -19,6 +19,16 @@ public class Menu {
 
     private String description;
 
+    public String getIcon() {
+        return icon;
+    }
+
+    public void setIcon(String icon) {
+        this.icon = icon;
+    }
+
+    private String icon;
+
     @ManyToMany(mappedBy = "menus")
     private Set<AppUser> users;
 

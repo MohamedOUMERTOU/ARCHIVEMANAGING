@@ -1,6 +1,6 @@
 import React from 'react';
 import { Route, Routes } from 'react-router-dom';
-import SELayout from './components/Layout';
+import SELayout from './components/layout/Layout';
 
 const App: React.FC = () => {
   return (

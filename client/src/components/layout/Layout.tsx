@@ -4,6 +4,12 @@ import React, { useEffect, useState } from "react";
 import { Link, Outlet } from "react-router-dom";
 import { getMenus } from "../../apis/SEApis";
 import { Icons } from "../../core/SEIcons";
+<<<<<<< HEAD
+=======
+
+import { getMenus } from "../../apis/SEApis";
+import SEgrid from "../../core/SEgrid";
+>>>>>>> 748469dbdba43967ac69958aca5a81a0f2febdd8
 
 const { Header, Sider, Content } = Layout;
 const { SubMenu } = Menu;

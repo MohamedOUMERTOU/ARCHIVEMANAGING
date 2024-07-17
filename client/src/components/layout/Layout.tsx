@@ -1,10 +1,9 @@
 import { MenuFoldOutlined, MenuUnfoldOutlined } from "@ant-design/icons";
 import { Button, Layout, Menu } from "antd";
 import React, { useEffect, useState } from "react";
-import { Outlet } from "react-router-dom";
+import { Link, Outlet } from "react-router-dom";
+import { getMenus } from "../../apis/SEApis";
 import { Icons } from "../../core/SEIcons";
-import { getMenus } from "../apis/SEApis";
-import SEgrid from "../../core/SEgrid";
 
 const { Header, Sider, Content } = Layout;
 const { SubMenu } = Menu;
@@ -21,47 +20,6 @@ interface MenuItem {
 const SELayout: React.FC = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [menuData, setMenuData] = useState<MenuItem[]>([]);
-  const [rowData, setRowData] = useState([
-    { key: "1", make: "Tesla", model: "Model Y", price: 64950, electric: true },
-    {
-      key: "2",
-      make: "Ford",
-      model: "F-Series",
-      price: 33850,
-      electric: false,
-    },
-    {
-      key: "3",
-      make: "Toyota",
-      model: "Corolla",
-      price: 29600,
-      electric: false,
-    },
-  ]);
-
-  const columns = [
-    {
-      title: "Make",
-      dataIndex: "make",
-      key: "make",
-    },
-    {
-      title: "Model",
-      dataIndex: "model",
-      key: "model",
-    },
-    {
-      title: "Price",
-      dataIndex: "price",
-      key: "price",
-    },
-    {
-      title: "Electric",
-      dataIndex: "electric",
-      key: "electric",
-      render: (text: boolean) => (text ? "Yes" : "No"),
-    },
-  ];
 
   useEffect(() => {
     fetchMenus();
@@ -76,8 +34,12 @@ const SELayout: React.FC = () => {
     }
   };
 
-  const renderMenuItems = (menuItems: MenuItem[]) => {
+  const renderMenuItems = (menuItems: MenuItem[], parentPath = "") => {
     return menuItems.map((menuItem) => {
+      const currentPath = parentPath
+        ? `${parentPath}/${menuItem.nom}`
+        : menuItem.nom;
+
       if (menuItem.subMenus && menuItem.subMenus.length > 0) {
         return (
           <SubMenu
@@ -87,10 +49,11 @@ const SELayout: React.FC = () => {
               menuItem.icon ? React.createElement(Icons[menuItem.icon]) : null
             }
           >
-            {renderMenuItems(menuItem.subMenus)}
+            {renderMenuItems(menuItem.subMenus, currentPath)}
           </SubMenu>
         );
       }
+
       return (
         <Menu.Item
           key={menuItem.idMenu}
@@ -98,7 +61,7 @@ const SELayout: React.FC = () => {
             menuItem.icon ? React.createElement(Icons[menuItem.icon]) : null
           }
         >
-          {menuItem.nom}
+          <Link to={currentPath}>{menuItem.nom}</Link>
         </Menu.Item>
       );
     });
@@ -150,13 +113,6 @@ const SELayout: React.FC = () => {
             borderRadius: "8px",
           }}
         >
-          <SEgrid
-            data={rowData}
-            columns={columns}
-            onRow={(record) => ({
-              onClick: () => alert('test'),
-            })}
-          />
           <Outlet />
         </Content>
       </Layout>

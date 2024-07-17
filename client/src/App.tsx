@@ -1,13 +1,16 @@
-import React from 'react';
-import { Route, Routes } from 'react-router-dom';
-import SELayout from './components/layout/Layout';
+import React, { StrictMode } from "react";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import SELayout from "./components/layout/Layout";
 
 const App: React.FC = () => {
+  const router = createBrowserRouter([
+    {
+      path: "/",
+      element: <SELayout />,
+    },
+  ]);
   return (
-    <Routes>
-      <Route path="/" element={<SELayout />}>
-      </Route>
-    </Routes>
+      <RouterProvider router={router} />
   );
 };
 

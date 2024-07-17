@@ -1,9 +1,10 @@
+import { MenuFoldOutlined, MenuUnfoldOutlined } from "@ant-design/icons";
 import { Button, Layout, Menu } from "antd";
 import React, { useEffect, useState } from "react";
 import { Outlet } from "react-router-dom";
 import { Icons } from "../../core/SEIcons";
 import { getMenus } from "../apis/SEApis";
-import { MenuUnfoldOutlined, MenuFoldOutlined } from "@ant-design/icons";
+import SEgrid from "../../core/SEgrid";
 
 const { Header, Sider, Content } = Layout;
 const { SubMenu } = Menu;
@@ -20,6 +21,47 @@ interface MenuItem {
 const SELayout: React.FC = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [menuData, setMenuData] = useState<MenuItem[]>([]);
+  const [rowData, setRowData] = useState([
+    { key: "1", make: "Tesla", model: "Model Y", price: 64950, electric: true },
+    {
+      key: "2",
+      make: "Ford",
+      model: "F-Series",
+      price: 33850,
+      electric: false,
+    },
+    {
+      key: "3",
+      make: "Toyota",
+      model: "Corolla",
+      price: 29600,
+      electric: false,
+    },
+  ]);
+
+  const columns = [
+    {
+      title: "Make",
+      dataIndex: "make",
+      key: "make",
+    },
+    {
+      title: "Model",
+      dataIndex: "model",
+      key: "model",
+    },
+    {
+      title: "Price",
+      dataIndex: "price",
+      key: "price",
+    },
+    {
+      title: "Electric",
+      dataIndex: "electric",
+      key: "electric",
+      render: (text: boolean) => (text ? "Yes" : "No"),
+    },
+  ];
 
   useEffect(() => {
     fetchMenus();
@@ -41,7 +83,9 @@ const SELayout: React.FC = () => {
           <SubMenu
             key={menuItem.idMenu}
             title={menuItem.nom}
-            icon={menuItem.icon ? React.createElement(Icons[menuItem.icon]) : null}
+            icon={
+              menuItem.icon ? React.createElement(Icons[menuItem.icon]) : null
+            }
           >
             {renderMenuItems(menuItem.subMenus)}
           </SubMenu>
@@ -50,7 +94,9 @@ const SELayout: React.FC = () => {
       return (
         <Menu.Item
           key={menuItem.idMenu}
-          icon={menuItem.icon ? React.createElement(Icons[menuItem.icon]) : null}
+          icon={
+            menuItem.icon ? React.createElement(Icons[menuItem.icon]) : null
+          }
         >
           {menuItem.nom}
         </Menu.Item>
@@ -61,19 +107,24 @@ const SELayout: React.FC = () => {
   const getTopLevelMenus = (menuItems: MenuItem[]): MenuItem[] => {
     // Collect all submenu ids
     const subMenuIds = new Set<number>();
-    menuItems.forEach(item => {
-      item.subMenus?.forEach(subMenu => subMenuIds.add(subMenu.idMenu));
+    menuItems.forEach((item) => {
+      item.subMenus?.forEach((subMenu) => subMenuIds.add(subMenu.idMenu));
     });
 
     // Filter out menu items that are submenus
-    return menuItems.filter(item => !subMenuIds.has(item.idMenu));
+    return menuItems.filter((item) => !subMenuIds.has(item.idMenu));
   };
 
   return (
     <Layout>
       <Sider trigger={null} collapsible collapsed={collapsed}>
         <div className="demo-logo-vertical" />
-        <Menu theme="dark" mode="inline" defaultSelectedKeys={["1"]}>
+        <Menu
+          theme="dark"
+          mode="inline"
+          defaultSelectedKeys={["1"]}
+          style={{ marginTop: "20px" }}
+        >
           {renderMenuItems(getTopLevelMenus(menuData))}
         </Menu>
       </Sider>
@@ -99,6 +150,13 @@ const SELayout: React.FC = () => {
             borderRadius: "8px",
           }}
         >
+          <SEgrid
+            data={rowData}
+            columns={columns}
+            onRow={(record) => ({
+              onClick: () => alert('test'),
+            })}
+          />
           <Outlet />
         </Content>
       </Layout>

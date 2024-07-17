@@ -3,7 +3,8 @@ import { Button, Layout, Menu } from "antd";
 import React, { useEffect, useState } from "react";
 import { Outlet } from "react-router-dom";
 import { Icons } from "../../core/SEIcons";
-import { getMenus } from "../apis/SEApis";
+
+import { getMenus } from "../../apis/SEApis";
 import SEgrid from "../../core/SEgrid";
 
 const { Header, Sider, Content } = Layout;

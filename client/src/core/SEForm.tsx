@@ -3,7 +3,7 @@ import { Form as AntdForm, Button } from 'antd';
 import type { FormProps } from 'antd/lib/form/Form';
 
 interface SEFormProps extends FormProps {
-  submitLabel: string;
+  submitLabel?: string;
   onSubmit: () => void;
   disabled?: boolean;
   id?: string;

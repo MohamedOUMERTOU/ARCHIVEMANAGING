@@ -1,25 +1,103 @@
-import React, { FC } from "react";
-import SEForm from "../../../../core/SEForm";
-import SETextInput from "../../../../core/SETextInputs";
-import { SECol } from "../../../../core/SECol";
+import { Input, TableColumnProps, TableProps } from "antd";
+import cuid from "cuid"; // Ensure you have cuid installed or use another unique ID generator
+import React, { FC, Key, useEffect, useState } from "react";
+import SEButton from "../../../../core/SEButton";
+import SECol from "../../../../core/SECol";
+import SEgrid from "../../../../core/SEgrid";
+import { Icons } from "../../../../core/SEIcons";
+import SERow from "../../../../core/SERow";
+import SETypography from "../../../../core/SETypography";
+import { getUtilisateurs } from "./usersApis";
 
 const ListUsers: FC = () => {
+  const [users, setUsers] = useState<any[]>([]);
+  const [filteredUsers, setFilteredUsers] = useState<any[]>([]);
+  const [selectedRowKeys, setSelectedRowKeys] = useState<Key[]>([]);
+  const [filterValue, setFilterValue] = useState<string>("");
+
+  useEffect(() => {
+    getUtilisateurs();
+    const storedUsers = localStorage.getItem("users");
+    if (storedUsers) {
+      const userData = JSON.parse(storedUsers).map((user: any) => ({
+        ...user,
+        key: cuid(),
+      }));
+      setUsers(userData);
+      setFilteredUsers(userData); // Set initial filtered data
+    }
+  }, []);
+
+  const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFilterValue(e.target.value);
+  };
+
+  const applyFilter = () => {
+    const filtered = users.filter((user) =>
+      user.username.toLowerCase().includes(filterValue.toLowerCase())
+    );
+    setFilteredUsers(filtered);
+  };
+
+  const columns: TableColumnProps<any>[] = [
+    {
+      title: "Nom",
+      dataIndex: "username",
+      key: "username",
+      filterDropdown: () => (
+        <div style={{ padding: 8 }}>
+          <Input
+            placeholder="Enter username"
+            value={filterValue}
+            onChange={handleFilterChange}
+            onPressEnter={applyFilter}
+            style={{ marginBottom: 8, display: "block" }}
+          />
+          <SEButton
+            label="Filter"
+            type="primary"
+            onClick={applyFilter}
+            icon={<Icons.FileDoneOutlined />}
+          />
+        </div>
+      ),
+      onFilter: (value: string | number | boolean | Key, record: any) =>
+        record.username.toLowerCase().includes(filterValue.toLowerCase()),
+    },
+    // Add more columns as needed
+  ];
+
+  const rowSelection: TableProps<any>["rowSelection"] = {
+    selectedRowKeys,
+    onChange: (selectedRowKeys: Key[]) => {
+      setSelectedRowKeys(selectedRowKeys);
+    },
+  };
+
   return (
     <>
-      <SEForm
-        onSubmit={() => {
-          console.log("test");
-        }}
-        submitLabel="Submit"
-      >
-        <SECol col={12}>
-          <SETextInput
-            name="test"
-            value="value"
-            onChange={(event: any) => {}}
+      <SETypography text="Gestion des utilisateurs" level={2} />
+      <SERow>
+        <SECol span={24} offset={22}>
+          <SEButton
+            label="Ajouter"
+            icon={<Icons.FileDoneOutlined />}
+            style={{
+              backgroundColor: "#22ab47",
+              color: "white",
+              margin: "5px",
+            }}
           />
         </SECol>
-      </SEForm>
+      </SERow>
+
+      <SECol span={24}>
+        <SEgrid
+          columns={columns}
+          data={filteredUsers}
+          rowSelection={rowSelection}
+        />
+      </SECol>
     </>
   );
 };

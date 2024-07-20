@@ -1,9 +1,9 @@
-import { Button, ButtonProps, Col } from "antd";
-import { CSSProperties, FC } from "react";
-import React from "react";
+import { Button, ButtonProps } from "antd";
+import React,{ CSSProperties, FC, ReactNode } from "react";
+
 interface SEButtonProps {
   label: string;
-  onClick: () => void;
+  onClick?: () => void; // Mark onClick as optional
   disabled?: boolean;
   type?: ButtonProps["type"];
   id?: string;
@@ -12,21 +12,22 @@ interface SEButtonProps {
   confirm?: string; // New prop for confirmation dialog
   style?: CSSProperties;
   col?: number;
+  icon?: ReactNode; // Add icon property
+
 }
 
 const SEButton: FC<SEButtonProps> = (params: SEButtonProps) => {
   const handleClick = () => {
     if (params.confirm) {
       if (window.confirm(params.confirm)) {
-        params.onClick();
+        params.onClick && params.onClick(); // Invoke onClick if it is provided
       }
     } else {
-      params.onClick();
+      params.onClick && params.onClick(); // Invoke onClick if it is provided
     }
   };
 
   return (
-    <Col span={params.col}>
       <Button
         onClick={handleClick}
         disabled={params.disabled}
@@ -35,10 +36,10 @@ const SEButton: FC<SEButtonProps> = (params: SEButtonProps) => {
         id={params.id}
         data-testid={params.dataTestId}
         style={{ ...params.style }}
+        icon={params.icon}
       >
         {params.label}
       </Button>
-    </Col>
   );
 };
 

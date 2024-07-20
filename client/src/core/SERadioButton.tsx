@@ -1,6 +1,7 @@
 import type { RadioChangeEvent, RadioProps } from "antd";
 import { Col, Radio } from "antd";
 import React from "react";
+import SETypography from "./SETypography";
 
 interface SERadioButtonProps extends Omit<RadioProps, "onChange"> {
   value?: string | number;
@@ -10,7 +11,8 @@ interface SERadioButtonProps extends Omit<RadioProps, "onChange"> {
   autoFocus?: boolean;
   tabIndex?: number;
   col?: number;
-  text:string
+  text:string;
+  label:string
 }
 
 const SERadioButton: React.FC<SERadioButtonProps> = ({
@@ -22,6 +24,7 @@ const SERadioButton: React.FC<SERadioButtonProps> = ({
   tabIndex,
   col = 24,
   text,
+  label,
   ...restProps
 }) => {
   const handleChange = (e: RadioChangeEvent) => {
@@ -30,6 +33,8 @@ const SERadioButton: React.FC<SERadioButtonProps> = ({
 
   return (
     <Col span={col}>
+            {label && <SETypography text={label} level={5}/>} {/* Render label if text is provided */}
+
       <Radio
         className={`se-radio-button ${className}`}
         value={value}

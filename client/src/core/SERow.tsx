@@ -1,21 +1,17 @@
-import { createId } from '@paralleldrive/cuid2';
-import { Row } from "antd";
-import { has } from "lodash";
-import React from "react";
-import { SECol } from "./SECol";
+import React, { FC, ReactNode } from 'react';
+import { Row } from 'antd';
 
-export const MSRow = (props: any) => {
+interface SERowProps {
+  gutter?: number;
+  children: ReactNode;
+}
+
+const SERow: FC<SERowProps> = ({ gutter, children }) => {
   return (
-    <Row gutter={props.gutter || [8, 8]} key={createId()} {...props}>
-      {React.Children.map(props.children, (child, index) => {
-        if (!has(child, "props")) return null;
-
-        return child.type && child.type.name === SECol.name ? (
-          child
-        ) : (
-          <SECol col={child.props.col}>{child}</SECol>
-        );
-      })}
+    <Row gutter={gutter}>
+      {children}
     </Row>
   );
 };
+
+export default SERow;

@@ -1,23 +1,20 @@
-import { Col, ColProps } from "antd";
-import { createId } from "@paralleldrive/cuid2";
+import React, { FC, ReactNode } from 'react';
+import { Col } from 'antd';
+import { CSSProperties } from 'react';
 
-import React from "react";
-
-export interface SECol extends ColProps {
-  col?: number;
+interface SEColProps {
+  span: number;
+  children: ReactNode;
+  offset?: number;
+  style?: CSSProperties;
 }
 
-export const SECol = (props: SECol) => {
+const SECol: FC<SEColProps> = ({ span, children, offset = 0, style }) => {
   return (
-    <Col
-      key={createId()}
-      xs={24}
-      sm={24}
-      md={props.col || 24}
-      span={props.col || 24}
-      {...props}
-    >
-      {React.Children.map(props.children, (child, index) => child)}
+    <Col span={span} offset={offset} style={style}>
+      {children}
     </Col>
   );
 };
+
+export default SECol;

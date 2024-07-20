@@ -1,5 +1,5 @@
 import React from "react";
-import { Table,TableProps  } from "antd";
+import { Table,TableProps } from "antd";
 
 interface SEgridProps extends TableProps<any> {
   data: any[];
@@ -7,9 +7,8 @@ interface SEgridProps extends TableProps<any> {
 }
 const SEgrid: React.FC<SEgridProps> = ({ data, columns,...TableProps  }) => {
   return (
-    <div style={{ padding: 24, background: "#fff", minHeight: 500 }}>
-      <Table columns={columns} dataSource={data} {...TableProps}/>
-    </div>
+     <Table columns={columns} dataSource={data} {...TableProps}/>
+     
   );
 };
 

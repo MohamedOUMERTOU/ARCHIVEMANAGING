@@ -1,4 +1,5 @@
 package com.sea.systemarchivephysic.controllers;
+
 import com.sea.systemarchivephysic.models.AppUser;
 import com.sea.systemarchivephysic.services.UserService;
 
@@ -10,7 +11,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/users")
+@RequestMapping("/api/users")
 public class UserController {
 
     @Autowired
@@ -18,6 +19,7 @@ public class UserController {
 
     @GetMapping
     public List<AppUser> getAllUsers() {
+        System.out.println("iiin");
         return userService.getAllUsers();
     }
 

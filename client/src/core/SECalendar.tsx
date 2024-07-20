@@ -1,16 +1,19 @@
-import React from 'react';
-import { Calendar } from 'antd';
 import type { CalendarProps } from 'antd';
-import dayjs, { Dayjs } from 'dayjs';
+import { Calendar } from 'antd';
+import { Dayjs } from 'dayjs';
+import React from 'react';
+import SECol from './SECol';
 
 interface SECalendarProps extends Omit<CalendarProps<Dayjs>, 'onChange'> {
   className?: string;
   onChange?: (value: Dayjs | null) => void; // Adjust onChange type if necessary
+  col?:number
 }
 
 const SECalendar: React.FC<SECalendarProps> = ({
   className = "",
   onChange,
+  col=24,
   ...restProps
 }) => {
 
@@ -21,11 +24,14 @@ const SECalendar: React.FC<SECalendarProps> = ({
   };
 
   return (
-    <Calendar
+    <SECol span={col}>
+       <Calendar
       className={`se-calendar ${className}`}
       onChange={handleChange}
       {...restProps}
     />
+    </SECol>
+   
   );
 };
 

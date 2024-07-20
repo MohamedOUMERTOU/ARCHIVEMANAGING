@@ -1,24 +1,27 @@
-import React from 'react';
-import { Checkbox, Divider } from 'antd';
-import type { CheckboxProps } from 'antd';
+import type {CheckboxProps } from "antd";
+import { Checkbox, Col } from "antd";
+import React from "react";
 
 interface SECheckboxProps extends CheckboxProps {
   text: string;
-  orientation?: 'left' | 'right' | 'center'; // Optional: Alignment of the text relative to the checkbox
+  orientation?: "left" | "right" | "center";
+  col?: number;
+  onChange?: (e: any) => void;
 }
 
 const SECheckbox: React.FC<SECheckboxProps> = ({
   text,
-  orientation = 'center',
+  orientation = "center",
+  col = 24,
+  onChange,
   ...checkboxProps
 }) => {
   return (
-    <div style={{ display: 'flex', alignItems: 'center' }}>
-      {orientation === 'left' && <Divider style={{ margin: '0 20px 0 0' }} />}
-      <Checkbox {...checkboxProps}>{text}</Checkbox>
-      {orientation === 'center' && <Divider style={{ margin: '0 20px' }} />}
-      {orientation === 'right' && <Divider style={{ margin: '0 0 0 20px' }} />}
-    </div>
+    <Col span={col}>
+      <Checkbox {...checkboxProps} onChange={onChange}>
+        {text}
+      </Checkbox>
+    </Col>
   );
 };
 

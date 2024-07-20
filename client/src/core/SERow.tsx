@@ -8,7 +8,7 @@ interface SERowProps {
 
 const SERow: FC<SERowProps> = ({ gutter, children }) => {
   return (
-    <Row gutter={gutter}>
+    <Row gutter={gutter} style={{margin:"10px"}}>
       {children}
     </Row>
   );

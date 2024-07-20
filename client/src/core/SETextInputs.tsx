@@ -2,6 +2,7 @@ import React from "react";
 import { Input } from "antd";
 import type { InputProps } from "antd/lib/input";
 import SECol from "./SECol";
+import SETypography from "./SETypography"; // Import SETypography for displaying the label
 
 interface SETextInputProps extends Omit<InputProps, "onChange"> {
   value: string;
@@ -13,6 +14,7 @@ interface SETextInputProps extends Omit<InputProps, "onChange"> {
   autoFocus?: boolean;
   tabIndex?: number;
   col?: number;
+  text?: string; // Add text prop for the label
 }
 
 const SETextInput: React.FC<SETextInputProps> = ({
@@ -24,7 +26,8 @@ const SETextInput: React.FC<SETextInputProps> = ({
   id,
   autoFocus,
   tabIndex,
-  col=24,
+  col = 24,
+  text,
   ...restProps
 }) => {
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -37,6 +40,7 @@ const SETextInput: React.FC<SETextInputProps> = ({
 
   return (
     <SECol span={col}>
+      {text && <SETypography text={text} level={5}/>} {/* Render label if text is provided */}
       <Input
         className={`se-text-input ${className}`}
         value={value}

@@ -26,17 +26,6 @@ const SEForm: React.FC<SEFormProps> = (params: SEFormProps) => {
     <AntdForm {...params}>
       {/* Ensure children are rendered correctly */}
       {params.children}
-      <Button
-        type="primary"
-        htmlType="submit"
-        onClick={handleSubmit}
-        disabled={params.disabled}
-        id={params.id}
-        data-testid={params.dataTestId}
-        aria-label={params.ariaLabel}
-      >
-        {params.submitLabel}
-      </Button>
     </AntdForm>
   );
 };

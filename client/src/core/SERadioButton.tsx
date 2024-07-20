@@ -1,15 +1,16 @@
-import React from 'react';
-import { Radio } from 'antd';
-import type { RadioChangeEvent } from 'antd';
-import type { RadioProps } from 'antd';
+import type { RadioChangeEvent, RadioProps } from "antd";
+import { Col, Radio } from "antd";
+import React from "react";
 
-interface SERadioButtonProps extends Omit<RadioProps, 'onChange'> {
+interface SERadioButtonProps extends Omit<RadioProps, "onChange"> {
   value?: string | number;
   onChange: (e: RadioChangeEvent) => void;
   className?: string;
   id?: string;
   autoFocus?: boolean;
   tabIndex?: number;
+  col?: number;
+  text:string
 }
 
 const SERadioButton: React.FC<SERadioButtonProps> = ({
@@ -19,23 +20,26 @@ const SERadioButton: React.FC<SERadioButtonProps> = ({
   id,
   autoFocus,
   tabIndex,
+  col = 24,
+  text,
   ...restProps
 }) => {
-
   const handleChange = (e: RadioChangeEvent) => {
     onChange(e);
   };
 
   return (
-    <Radio
-      className={`se-radio-button ${className}`}
-      value={value}
-      onChange={handleChange}
-      id={id}
-      autoFocus={autoFocus}
-      tabIndex={tabIndex}
-      {...restProps}
-    />
+    <Col span={col}>
+      <Radio
+        className={`se-radio-button ${className}`}
+        value={value}
+        onChange={handleChange}
+        id={id}
+        autoFocus={autoFocus}
+        tabIndex={tabIndex}
+        {...restProps}
+      >{text}</Radio>
+    </Col>
   );
 };
 

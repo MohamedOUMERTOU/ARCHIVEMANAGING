@@ -1,11 +1,11 @@
-import { Button, ButtonProps } from "antd";
-import React,{ CSSProperties, FC, ReactNode } from "react";
+import { Button, ButtonProps } from 'antd';
+import React, { CSSProperties, FC, ReactNode } from 'react';
 
 interface SEButtonProps {
   label: string;
   onClick?: () => void; // Mark onClick as optional
   disabled?: boolean;
-  type?: ButtonProps["type"];
+  type?: ButtonProps['type'];
   id?: string;
   dataTestId?: string;
   ariaLabel?: string;
@@ -13,7 +13,7 @@ interface SEButtonProps {
   style?: CSSProperties;
   col?: number;
   icon?: ReactNode; // Add icon property
-
+  isSubmit?: boolean; // New prop to indicate if it's a submit button
 }
 
 const SEButton: FC<SEButtonProps> = (params: SEButtonProps) => {
@@ -27,19 +27,23 @@ const SEButton: FC<SEButtonProps> = (params: SEButtonProps) => {
     }
   };
 
+  // Determine the button text based on whether it is a submit button or not
+  const buttonText = params.isSubmit ? 'Add' : params.label;
+
   return (
-      <Button
-        onClick={handleClick}
-        disabled={params.disabled}
-        type={params.type}
-        aria-label={params.ariaLabel}
-        id={params.id}
-        data-testid={params.dataTestId}
-        style={{ ...params.style }}
-        icon={params.icon}
-      >
-        {params.label}
-      </Button>
+    <Button
+      onClick={handleClick}
+      disabled={params.disabled}
+      type={params.type}
+      aria-label={params.ariaLabel}
+      id={params.id}
+      data-testid={params.dataTestId}
+      style={{ ...params.style }}
+      icon={params.icon}
+      htmlType={params.isSubmit ? 'submit' : 'button'} // Set the HTML type based on the isSubmit prop
+    >
+      {buttonText}
+    </Button>
   );
 };
 

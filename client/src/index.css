@@ -42,3 +42,7 @@ code {
 .white {
   color: white;
 }
+
+.se-select {
+  width: 100%; /* or any specific width you need */
+}

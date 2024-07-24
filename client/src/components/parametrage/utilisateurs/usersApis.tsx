@@ -1,4 +1,4 @@
-import { SECore } from "../../../../apis/SECore";
+import { SECore } from "../../../apis/SECore";
 
 export const getUtilisateurs = async () => {
   try {

@@ -1,14 +1,14 @@
 import { Input, TableColumnProps, TableProps } from "antd";
 import cuid from "cuid"; // Ensure you have cuid installed or use another unique ID generator
 import React, { FC, Key, useContext, useEffect, useState } from "react";
-import SEButton from "../../../../core/SEButton";
-import SECol from "../../../../core/SECol";
-import SEgrid from "../../../../core/SEgrid";
-import { Icons } from "../../../../core/SEIcons";
-import SERow from "../../../../core/SERow";
-import SETypography from "../../../../core/SETypography";
+import SEButton from "../../../core/SEButton";
+import SECol from "../../../core/SECol";
+import SEgrid from "../../../core/SEgrid";
+import { Icons } from "../../../core/SEIcons";
+import SERow from "../../../core/SERow";
+import SETypography from "../../../core/SETypography";
 import { getUtilisateurs } from "./usersApis";
-import { SEContext } from "../../../../context/userSEContext";
+import { SEContext } from "../../../context/userSEContext";
 
 
 const ListUsers: FC = () => {

@@ -4,11 +4,13 @@ import type { TabsProps } from 'antd';
 
 interface SETabsProps extends Omit<TabsProps, 'onChange'> {
   className?: string;
+  
   onChange?: (activeKey: string) => void; // Adjust onChange type if necessary
 }
 
 const SETabs: React.FC<SETabsProps> = ({
   className = "",
+  
   onChange,
   ...restProps
 }) => {

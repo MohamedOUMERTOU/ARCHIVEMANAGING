@@ -1,14 +1,17 @@
 // src/core/SEIcons.tsx
 
 import {
-  SettingOutlined,
+  AppstoreAddOutlined,
+  ClusterOutlined,
   FileDoneOutlined,
-  UserOutlined,
-  GoldOutlined,
   FileSearchOutlined,
   FolderOutlined,
+  GoldOutlined,
+  IdcardOutlined,
+  SettingOutlined,
+  UserOutlined,
+  FileOutlined
 } from "@ant-design/icons";
-import React from "react";
 
 export const Icons = {
   SettingOutlined: (props: any) => <SettingOutlined {...props} />,
@@ -17,4 +20,8 @@ export const Icons = {
   GoldOutlined: (props: any) => <GoldOutlined {...props} />,
   FileSearchOutlined: (props: any) => <FileSearchOutlined {...props} />,
   FolderOutlined: (props: any) => <FolderOutlined {...props} />,
+  ClusterOutlined: (props: any) => <ClusterOutlined {...props} />,
+  AppstoreAddOutlined:(props:any) => <AppstoreAddOutlined {...props}/>,
+  IdcardOutlined:(props:any) => <IdcardOutlined {...props}/>,
+  FileOutlined:(props:any) => <FileOutlined {...props}/>
 };

@@ -1,24 +1,21 @@
 // types.ts
+
+import { Icons } from "../core/SEIcons";
+
 export interface User {
-  id: number;
-  name: string;
-  birthDate: string;
-}
+    id: number;
+    name: string;
+    email: string;
+    role?: string; // Add other fields as needed
+  }
 
-export interface Document {
-  id: number;
-  title: string;
-  content: string;
-}
 
-// Add other entity interfaces here...
-
-export type Entity = User | Document; // Extend this union type with other entities
-
-export interface SEContextType {
-  users: User[];
-  documents: Document[];
-  addEntity: <T extends Entity>(entity: T, entityType: 'users' | 'documents') => void;
-  setEntityList: <T extends Entity>(newEntities: T[], entityType: 'users' | 'documents') => void;
-  // Add other entity management methods here...
-}
+  type IconKeys = keyof typeof Icons;
+ export interface MenuItem {
+    idMenu: number;
+    icon?: IconKeys;
+    nom: string;
+    discription: string;
+    parentId: number;
+    subMenus?: MenuItem[];
+  }

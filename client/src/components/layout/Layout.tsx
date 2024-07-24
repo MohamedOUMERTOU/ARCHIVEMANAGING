@@ -1,34 +1,39 @@
 import { MenuFoldOutlined, MenuUnfoldOutlined } from "@ant-design/icons";
 import { Button, Layout, Menu } from "antd";
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Link, Outlet } from "react-router-dom";
 import { getMenus } from "../../apis/SEApis";
 import { Icons } from "../../core/SEIcons";
+import { SEContext } from "../../context/userSEContext";
+import { MenuItem } from "../../context/Types";
 
 const { Header, Sider, Content } = Layout;
 const { SubMenu } = Menu;
 
-type IconKeys = keyof typeof Icons;
 
-interface MenuItem {
-  idMenu: number;
-  icon?: IconKeys;
-  nom: string;
-  subMenus?: MenuItem[];
-}
 
 const SELayout: React.FC = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [menuData, setMenuData] = useState<MenuItem[]>([]);
-
+ 
   useEffect(() => {
     fetchMenus();
   }, []);
+  const context = useContext(SEContext);
+
+  if (!context) {
+    // Handle the case where context is not available
+    return <div>Error: SEContext is not available</div>;
+  }
+  const { users, setUsers } = context;
+ const { axes, setAxes}=context;
+
 
   const fetchMenus = async () => {
     try {
       const menus: MenuItem[] = await getMenus();
       setMenuData(menus);
+      setAxes(menus);
     } catch (error) {
       console.error("Error fetching menus:", error);
     }

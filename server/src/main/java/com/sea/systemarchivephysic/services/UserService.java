@@ -1,5 +1,6 @@
 package com.sea.systemarchivephysic.services;
 
+import com.sea.systemarchivephysic.dtos.UserDto;
 import com.sea.systemarchivephysic.models.AppUser;
 import com.sea.systemarchivephysic.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,5 +28,9 @@ public class UserService {
 
     public void deleteUser(long id) {
         userRepository.deleteById(id);
+    }
+
+    public List<UserDto> lovUsers() {
+        return userRepository.lovUsers();
     }
 }

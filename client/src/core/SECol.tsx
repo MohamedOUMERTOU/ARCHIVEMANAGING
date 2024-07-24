@@ -11,7 +11,7 @@ interface SEColProps {
 
 const SECol: FC<SEColProps> = ({ span, children, offset = 0, style }) => {
   return (
-    <Col span={span} offset={offset} style={style}>
+    <Col span={span} offset={offset} style={{ ...style, overflow: 'hidden' }}>
       {children}
     </Col>
   );

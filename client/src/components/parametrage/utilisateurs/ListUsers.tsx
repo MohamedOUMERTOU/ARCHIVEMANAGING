@@ -64,6 +64,7 @@ const ListUsers: FC = () => {
           <SEButton
             label="Filter"
             type="primary"
+            htmlType="submit"
             onClick={applyFilter}
             icon={<Icons.FileDoneOutlined />}
           />
@@ -89,6 +90,7 @@ const ListUsers: FC = () => {
         <SECol span={24} offset={22}>
           <SEButton
             label="Ajouter"
+            htmlType="submit"
             icon={<Icons.FileDoneOutlined />}
             style={{
               backgroundColor: "#22ab47",

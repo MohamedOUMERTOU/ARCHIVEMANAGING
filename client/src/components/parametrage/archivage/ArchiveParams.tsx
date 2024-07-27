@@ -16,16 +16,6 @@ const ArchiveParams: FC = () => {
       children: <div>Your content here 1</div>, // Replace with your actual content
     },
     {
-      key: "4",
-      label: (
-        <span>
-          <Icons.FileOutlined className='red' style={{ marginRight:'10px' }} />
-          Type de document
-        </span>
-      ),
-      children: <Types />, // Correct usage of TypesDocuments component
-    },
-    {
       key: "2",
       label: (
         <span>

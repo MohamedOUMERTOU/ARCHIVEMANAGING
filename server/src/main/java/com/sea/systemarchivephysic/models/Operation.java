@@ -10,15 +10,8 @@ public class Operation {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long idOperation;
-    private Date date;
     private String name;
-
-    @ManyToOne
-    @JoinColumn(name = "user_id")
-    private AppUser appUser;
-
     private String description;
-    private String destinataire;
 
     @ManyToMany(mappedBy = "operations")
     private Set<Document> documents = new HashSet<>();
@@ -27,13 +20,11 @@ public class Operation {
 
     public Operation() {}
 
-    public Operation(Set<Document> documents, String destinataire, String description, AppUser appUser, String name, Date date) {
+    public Operation(Set<Document> documents, String description, String name) {
         this.documents = documents;
-        this.destinataire = destinataire;
         this.description = description;
-        this.appUser = appUser;
         this.name = name;
-        this.date = date;
+
     }
 
     public long getIdOperation() {
@@ -60,13 +51,7 @@ public class Operation {
         this.metadatas = metadatas;
     }
 
-    public String getDestinataire() {
-        return destinataire;
-    }
 
-    public void setDestinataire(String destinataire) {
-        this.destinataire = destinataire;
-    }
 
     public String getDescription() {
         return description;
@@ -74,14 +59,6 @@ public class Operation {
 
     public void setDescription(String description) {
         this.description = description;
-    }
-
-    public AppUser getAppUser() {
-        return appUser;
-    }
-
-    public void setAppUser(AppUser appUser) {
-        this.appUser = appUser;
     }
 
     public String getName() {
@@ -92,11 +69,4 @@ public class Operation {
         this.name = name;
     }
 
-    public Date getDate() {
-        return date;
-    }
-
-    public void setDate(Date date) {
-        this.date = date;
-    }
 }

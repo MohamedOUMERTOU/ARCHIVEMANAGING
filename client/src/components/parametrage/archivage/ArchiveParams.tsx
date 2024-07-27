@@ -1,7 +1,7 @@
-import React, { FC } from 'react';
-import SETabs from '../../../core/SETabs';
+import React,{ FC } from 'react';
 import { Icons } from '../../../core/SEIcons';
-// Adjust the import based on your actual icon library
+import SETabs from '../../../core/SETabs';
+import Types from './typeDocuemnt';
 
 const ArchiveParams: FC = () => {
   const items = [
@@ -16,36 +16,35 @@ const ArchiveParams: FC = () => {
       children: <div>Your content here 1</div>, // Replace with your actual content
     },
     {
-        key: "4",
-        label: (
-          <span>
-            <Icons.FileOutlined className='red'style={{ marginRight:'10px'}}/>
-               Type de document
-          </span>
-        ),
-        children: <div>Your content here 2</div>, // Replace with your actual content
-      },
+      key: "4",
+      label: (
+        <span>
+          <Icons.FileOutlined className='red' style={{ marginRight:'10px' }} />
+          Type de document
+        </span>
+      ),
+      children: <Types />, // Correct usage of TypesDocuments component
+    },
     {
-        key: "2",
-        label: (
-          <span>
-            <Icons.AppstoreAddOutlined className='green' style={{ marginRight:'10px'}}/>
-            Paramètrage des actions
-          </span>
-        ),
-        children: <div>Your content here 3</div>, // Replace with your actual content
-      },
-      {
-        key: "3",
-        label: (
-          <span>
-            <Icons.IdcardOutlined className='purple' style={{ marginRight:'10px'}}/>
-           Paramètrage de Metadata
-          </span>
-        ),
-        children: <div>Your content here 4</div>, // Replace with your actual content
-      },
-     
+      key: "2",
+      label: (
+        <span>
+          <Icons.AppstoreAddOutlined className='green' style={{ marginRight:'10px' }} />
+          Paramètrage des actions
+        </span>
+      ),
+      children: <div>Your content here 3</div>, // Replace with your actual content
+    },
+    {
+      key: "3",
+      label: (
+        <span>
+          <Icons.IdcardOutlined className='purple' style={{ marginRight:'10px' }} />
+          Paramètrage de Metadata
+        </span>
+      ),
+      children: <div>Your content here 4</div>, // Replace with your actual content
+    },
   ];
 
   return (

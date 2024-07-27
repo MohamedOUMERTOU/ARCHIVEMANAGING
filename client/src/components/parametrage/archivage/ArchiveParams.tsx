@@ -3,7 +3,9 @@ import { Icons } from '../../../core/SEIcons';
 import SETabs from '../../../core/SETabs';
 import Index from './actionDocument/Index';
 import IndexMeta from './metadata/IndexMeta';
+import IndexTree from './tree/IndexTree';
 import Types from './typeDocuemnt';
+
 // Adjust the import based on your actual icon library
 
 const ArchiveParams: FC = () => {
@@ -16,7 +18,7 @@ const ArchiveParams: FC = () => {
           Hiérarchie de L'archivage
         </span>
       ),
-      children: <div>Your content here 1</div>, // Replace with your actual content
+      children: <IndexTree/>, // Replace with your actual content
     },
     {
       key: "4",

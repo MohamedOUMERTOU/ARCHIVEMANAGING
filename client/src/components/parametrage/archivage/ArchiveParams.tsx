@@ -2,6 +2,7 @@ import { FC } from 'react';
 import { Icons } from '../../../core/SEIcons';
 import SETabs from '../../../core/SETabs';
 import Index from './actionDocument/Index';
+import IndexMeta from './metadata/IndexMeta';
 // Adjust the import based on your actual icon library
 
 const ArchiveParams: FC = () => {
@@ -44,7 +45,7 @@ const ArchiveParams: FC = () => {
            Paramètrage de Metadata
           </span>
         ),
-        children: <div>Your content here 4</div>, // Replace with your actual content
+        children: <IndexMeta/>, // Replace with your actual content
       },
      
   ];

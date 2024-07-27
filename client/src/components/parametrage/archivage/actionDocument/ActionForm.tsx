@@ -1,18 +1,28 @@
-import { FC, useContext } from 'react'
-import { SEContext } from '../../../../context/userSEContext'
+import { FC, useContext, useEffect } from 'react'
 import SEButton from '../../../../core/SEButton'
 import SEForm from '../../../../core/SEForm'
 import SETextInput from '../../../../core/SETextInputs'
-import { addAction } from './ActionApis'
+import { addAction, getActions } from './ActionApis'
+import { SEContext } from '../../../../context/userSEContext'
  
 const ActionForm :FC= () => {
-  const context = useContext(SEContext);
-
+ 
+  const context = useContext(SEContext)
   if (!context) {
-    // Handle the case where context is not available
-    return <div>Error: SEContext is not available</div>;
+    throw new Error("SEContext must be used within a SEContextProvider");
   }
-  const {setActions } = context;
+ const  {closeDr, setCloseDr,actions,setActions}=context;
+  
+ 
+  useEffect(() => {
+    const fetchActions = async () => {
+      const result = await getActions();
+      setActions(result.data); 
+    };
+
+    fetchActions(); 
+   
+  }, []);
  
 
   const handlerchange=(value:any)=>{
@@ -21,11 +31,13 @@ const ActionForm :FC= () => {
   
  
   }
+
+  
   return (
     <SEForm onSubmit={handlerchange}>
-    <SETextInput name="name"label="Nom de l'action" onChange={handlerchange}/>
-    <SETextInput name="description" label="Description de l'action" onChange={handlerchange}/>
-    <SEButton htmlType="submit"  isSubmit label="sauvegarde"type="primary"/>
+    <SETextInput name="name"label="Nom de l'action" onChange={()=>{}}/>
+    <SETextInput name="description" label="Description de l'action" onChange={()=>{}}/>
+    <SEButton htmlType="submit"  isSubmit label="sauvegarde"type="primary" onClick={()=>setCloseDr(true)}/>
     </SEForm>
     
   )

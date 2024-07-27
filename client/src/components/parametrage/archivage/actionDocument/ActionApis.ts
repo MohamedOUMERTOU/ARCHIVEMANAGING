@@ -20,3 +20,14 @@ export const addAction  = async (data:any) => {
 };
 
 
+export const getActions = async () => {
+  try {
+    const response:any = await SECore.get("/operations");
+    
+    
+    return response;
+  } catch (error) {
+    console.error("Error fetching actions:", error);
+    return [];
+  }
+};

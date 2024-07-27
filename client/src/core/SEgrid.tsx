@@ -5,19 +5,20 @@ interface SEgridProps extends TableProps<any> {
   data: any[];
   columns: any[];
   col?: number;
-  rowSelection?: TableProps<any>['rowSelection']; // Add rowSelection prop
-  style?: CSSProperties ;// Add color prop
+  onRowClick?: (record: any) => void; // Add onRowClick prop
+  style?: CSSProperties; // Add style prop
 }
 
-const SEgrid: React.FC<SEgridProps> = ({ data, columns, col = 24, rowSelection, style, ...TableProps }) => {
+const SEgrid: React.FC<SEgridProps> = ({ data, columns, col = 24, onRowClick, style, ...TableProps }) => {
   return (
-    <Col span={col} style={{ ...style}}>
-      <Table 
+    <Col span={col} style={{ ...style }}>
+      <Table
         columns={columns}
         dataSource={data}
-        rowSelection={rowSelection} // Pass rowSelection to Table
+        onRow={(record) => ({
+          onClick: () => onRowClick?.(record), // Call the callback on row click
+        })}
         {...TableProps}
-       
       />
     </Col>
   );

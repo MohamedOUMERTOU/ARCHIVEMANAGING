@@ -5,7 +5,7 @@ import { Link, Outlet } from "react-router-dom";
 import { getMenus } from "../../apis/SEApis";
 import { Icons } from "../../core/SEIcons";
 import { SEContext } from "../../context/userSEContext";
-import { MenuItem } from "../../context/Types";
+import { MenuItem } from "../../context/types";
 
 const { Header, Sider, Content } = Layout;
 const { SubMenu } = Menu;

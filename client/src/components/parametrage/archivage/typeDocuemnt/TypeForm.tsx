@@ -1,27 +1,22 @@
-import React, { FC } from 'react';
-import SEForm from '../../../../core/SEForm';
-import SETextInput from '../../../../core/SETextInputs';
-import { Button } from 'antd';
+import { FC } from "react";
+import SEButton from "../../../../core/SEButton";
+import SEForm from "../../../../core/SEForm";
+import SETextInput from "../../../../core/SETextInputs";
+import { addTypeRefDoc } from "./TypesApis";
 
 const TypeForm: FC = () => {
-  const handleSubmit = (values: any) => {
-    console.log('Form Values:', values); // values will be an object with keys matching the name attributes of the inputs
-    // Handle form submission
+  const handlerchange = (data: any) => {
+    addTypeRefDoc(data);
   };
 
   return (
-    <SEForm onSubmit={handleSubmit}>
+    <SEForm onSubmit={handlerchange}>
       <SETextInput
-        text="Nom type"
-        name="name" // This name will be used as the key in the form values
-        onChange={(value) => { console.log('Value changed:', value); }}
+        name="typeName"
+        label="Libellé type:"
+        onChange={()=> {}}
       />
-      <SETextInput
-        text="Nom type"
-        name="username" // This name will be used as the key in the form values
-        onChange={(value) => { console.log('Value changed:', value); }}
-      />
-      <Button type="primary" htmlType="submit">Ajouter</Button>
+      <SEButton htmlType="submit" isSubmit label="sauvegarde" type="primary" />
     </SEForm>
   );
 };

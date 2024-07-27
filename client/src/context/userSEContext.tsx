@@ -1,5 +1,5 @@
 import React, { createContext, Dispatch, FC, ReactNode, SetStateAction, useState } from "react";
-import { Action, MenuItem, User } from "./Types";
+import { Action, MenuItem, User } from "./types";
 
 export const SEContextProvider: FC<SEContextProviderProps> = ({ children }) => {
   const [users, setUsers] = useState<User[]>([]);

@@ -25,8 +25,8 @@ const Types = () => {
       <SEDivider />
       <SEDrawer
         width={500}
-        placement="left"
-        title="Ajouter un typer"
+        placement="right"
+        title="Ajouter un type"
         visible={visible}
         onClose={onClose}
       >
@@ -34,6 +34,7 @@ const Types = () => {
       </SEDrawer>
       <SECol span={24} offset={21}>
         <SEButton
+        htmlType='submit'
           onClick={showDrawer}
           style={{ marginBottom: "10px" }}
           label="Ajouter type"

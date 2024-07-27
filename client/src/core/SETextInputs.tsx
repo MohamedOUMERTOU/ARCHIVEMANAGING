@@ -13,7 +13,7 @@ interface SETextInputProps extends Omit<InputProps, "onChange"> {
   autoFocus?: boolean;
   tabIndex?: number;
   col?: number;
-  text?: string; // Add text prop for the label
+  label?: string; // Add text prop for the label
   name: string; // Add name prop for form registration
 }
 
@@ -23,11 +23,11 @@ const SETextInput: React.FC<SETextInputProps> = ({
   disabled = false,
   className = "",
   id,
+  name,
   autoFocus,
   tabIndex,
   col = 24,
-  text,
-  name,
+  label,
   ...restProps
 }) => {
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -36,8 +36,12 @@ const SETextInput: React.FC<SETextInputProps> = ({
 
   return (
     <SECol span={col}>
-      {text && <SETypography text={text} level={5} />} {/* Render label if text is provided */}
-      <Form.Item name={name} rules={[{ required: true, message: `${text} is required` }]}>
+      {label && <SETypography text={label} level={5}  style={{ marginTop: -2}}/>} {/* Render label if text is provided */}
+      <Form.Item 
+        name={name} 
+        rules={[{ required: true, message: `${label} is required` }]}
+        style={{ marginBottom: 2}} // Adjust the bottom margin
+      >
         <Input
           className={`se-text-input ${className}`}
           onChange={handleChange}

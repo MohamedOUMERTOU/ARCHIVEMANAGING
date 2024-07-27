@@ -9,6 +9,12 @@ export interface User {
     role?: string; // Add other fields as needed
   }
 
+  export interface Action {
+    idOperation: number;
+    name: string;
+    description: string;
+    
+  }
 
   type IconKeys = keyof typeof Icons;
  export interface MenuItem {

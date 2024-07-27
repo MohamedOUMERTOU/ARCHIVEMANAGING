@@ -2,7 +2,8 @@ import { Button, ButtonProps } from 'antd';
 import React, { CSSProperties, FC, ReactNode } from 'react';
 
 interface SEButtonProps {
-  label: string;
+  label?: string;
+  htmlType:string;
   onClick?: () => void; // Mark onClick as optional
   disabled?: boolean;
   type?: ButtonProps['type'];
@@ -28,7 +29,7 @@ const SEButton: FC<SEButtonProps> = (params: SEButtonProps) => {
   };
 
   // Determine the button text based on whether it is a submit button or not
-  const buttonText = params.isSubmit ? 'Add' : params.label;
+  const buttonText = params.isSubmit ? 'Ajouter' : params.label;
 
   return (
     <Button

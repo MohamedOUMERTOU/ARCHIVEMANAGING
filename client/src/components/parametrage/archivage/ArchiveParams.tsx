@@ -1,6 +1,7 @@
-import React, { FC } from 'react';
-import SETabs from '../../../core/SETabs';
+import { FC } from 'react';
 import { Icons } from '../../../core/SEIcons';
+import SETabs from '../../../core/SETabs';
+import Index from './actionDocument/Index';
 // Adjust the import based on your actual icon library
 
 const ArchiveParams: FC = () => {
@@ -33,7 +34,7 @@ const ArchiveParams: FC = () => {
             Paramètrage des actions
           </span>
         ),
-        children: <div>Your content here 3</div>, // Replace with your actual content
+        children: <Index/>, // Replace with your actual content
       },
       {
         key: "3",

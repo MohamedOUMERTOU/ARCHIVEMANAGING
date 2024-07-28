@@ -3,6 +3,7 @@ package com.sea.systemarchivephysic.services;
 import com.sea.systemarchivephysic.models.RefTypedoc;
 import com.sea.systemarchivephysic.repositories.RefTypedocRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -24,7 +25,11 @@ public class RefTypedocService {
     }
 
     public RefTypedoc saveRefTypedoc(RefTypedoc refTypedoc) {
-        return refTypedocRepository.save(refTypedoc);
+        try {
+            return refTypedocRepository.save(refTypedoc);
+        } catch (DataIntegrityViolationException e) {
+            throw new RuntimeException("Type name must be unique");
+        }
     }
 
     public void deleteRefTypedoc(long id) {

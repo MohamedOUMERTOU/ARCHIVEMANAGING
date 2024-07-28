@@ -26,12 +26,12 @@ public class RefTypeDocController {
         Map<String, Object> response = new HashMap<>();
         try {
             RefTypedoc savedRefTypedoc = refTypeDocumentService.saveRefTypedoc(refDoc);
-            response.put("message", "RefTypedoc created successfully");
+            response.put("message", "Type a été ajoutée avec succès!");
             response.put("success", true);
             response.put("data", savedRefTypedoc);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            response.put("message", "Error creating RefTypedoc: " + e.getMessage());
+            response.put("message", "Error lors de création: " + e.getMessage());
             response.put("success", false);
             return ResponseEntity.status(500).body(response);
         }

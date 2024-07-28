@@ -9,6 +9,7 @@ public class RefTypedoc {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
+    @Column(unique = true)
     private String typeName;
 
     @OneToMany(mappedBy = "refTypedoc")

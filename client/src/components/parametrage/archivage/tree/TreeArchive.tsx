@@ -23,21 +23,52 @@ const TreeArchive :FC= () => {
 
   const treeData = [
     {
-      title: 'parent 0',
+      title: 'Archivage',
       key: '0-0',
       children: [
-        { title: 'parent 0-0', key: '0-0-0'  },
-        { title: 'parent 0-1', key: '0-0-1' },
+
+        {
+          title: 'Salle I',
+          key: '0-1',
+          children: [
+            { title: 'Reyonnage 1', key: '0-1-0',
+              children: [
+              { title: '2024/2023', key: '0-1-0-0' ,isLeaf: false},
+              { title: '2022/2023', key: '0-1-0-1' ,isLeaf: false},
+            ] ,isLeaf: false },
+            { title: 'Reyonnage 2', key: '0-1-1' ,
+              children: [
+                { title: '2024/2023', key: '0-1-1-0',isLeaf: false },
+                { title: '2022/2023', key: '0-1-1-1',isLeaf: false },
+              ],isLeaf: false
+            },
+
+          ],
+        } ,
+        {
+          title: 'Salle II',
+          key: '0-2',
+          children: [
+            {
+              title: 'Reyonnage 1', key: '0-2-0',
+              children: [
+                { title: '2024/2023', key: '0-2-0-0', isLeaf: false },
+                { title: '2022/2023', key: '0-2-0-1', isLeaf: false },
+              ], isLeaf: false
+            },
+            {
+              title: 'Reyonnage 2', key: '0-2-1',
+              children: [
+                { title: '2024/2023', key: '0-2-1-0', isLeaf: false },
+                { title: '2022/2023', key: '0-2-1-1', isLeaf: false },
+              ], isLeaf: false
+            },
+          ],
+        }
+        
       ],
     },
-    {
-      title: 'parent 1',
-      key: '0-1',
-      children: [
-        { title: 'parent 1-0', key: '0-1-0' },
-        { title: 'parent 1-1', key: '0-1-1' },
-      ],
-    },
+  
   ];
 
   return (

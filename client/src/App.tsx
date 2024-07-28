@@ -3,6 +3,7 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import SELayout from "./components/layout/Layout";
 import ListUsers from "./components/parametrage/utilisateurs/ListUsers";
 import ArchiveParams from "./components/parametrage/archivage/ArchiveParams";
+import SearchForm from "./components/expolitation/search/SearchForm";
 
 const App: React.FC = () => {
   const router = createBrowserRouter([
@@ -11,12 +12,20 @@ const App: React.FC = () => {
       element: <SELayout />,
       children: [
         {
-          path: "/Paramètrage/Utitlisateurs",
+          path: "Paramètrage/Utilisateurs",
           element: <ListUsers />,
         },
         {
           path: "/Paramètrage/Archivage",
           element: <ArchiveParams />,
+        },
+        {
+          path: "/Archivage/Recherche",
+          element: <SearchForm />,
+        },
+        {
+          path: "/Archivage/Archivage",
+          element: <SearchForm />,
         },
       ],
     },

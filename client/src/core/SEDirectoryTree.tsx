@@ -2,6 +2,8 @@ import React from 'react';
 import { Tree, Dropdown, Menu, Button } from 'antd';
 import type { TreeDataNode } from 'antd';
 import { MoreOutlined } from '@ant-design/icons';
+import { icons } from 'antd/es/image/PreviewGroup';
+import { Icons } from './SEIcons';
 
 type DirectoryTreeProps = {
   treeData: TreeDataNode[];
@@ -20,7 +22,7 @@ const SEDirectoryTree: React.FC<DirectoryTreeProps> = ({
   onExpand,
   onEdit,
   onDelete,
-  className = '',
+  className = 'orange',
   ...restProps
 }) => {
   const handleMenuClick = (key: React.Key, action: 'edit' | 'delete') => {
@@ -31,11 +33,11 @@ const SEDirectoryTree: React.FC<DirectoryTreeProps> = ({
     }
   };
 
-  // Function to render the title with icon and action buttons
+
   const renderTreeNodeTitle = (node: TreeDataNode): React.ReactNode => (
-    <div style={{ display: 'inline', alignItems: 'center' }}>
-      {/* Render the icon here if needed */}
-      <span style={{ flexGrow: 1 }}>{node.title as React.ReactNode}</span>
+    <div   style={{ display: 'inline', alignItems: 'center' }}>
+     
+      <span  className='black'style={{ flexGrow: 1 }}>{node.title as React.ReactNode} </span>
       <Dropdown
         overlay={
           <Menu>
@@ -50,16 +52,16 @@ const SEDirectoryTree: React.FC<DirectoryTreeProps> = ({
         trigger={['click']}
         placement="bottomRight"
       >
-        <Button
-          icon={<MoreOutlined />}
-          style={{ marginLeft: 2 }} // Space between title and button
-          size="small"
+        <Button 
+          icon={<Icons.UnorderedListOutlined   style={{cursor:"pointer" }}  />}
+          style={{ marginLeft: 2,cursor:"pointer", border:"none",color:'gray'}} 
+        
         />
       </Dropdown>
     </div>
   );
 
-  // Transform the treeData to include ReactNode for the title
+  
   const transformTreeData = (nodes: TreeDataNode[]): TreeDataNode[] =>
     nodes.map((node) => ({
       ...node,
@@ -68,14 +70,14 @@ const SEDirectoryTree: React.FC<DirectoryTreeProps> = ({
     }));
 
   return (
-    <DirectoryTree
+    <DirectoryTree  
       className={`se-directory-tree ${className}`}
       multiple
       defaultExpandAll
       onSelect={onSelect}
       onExpand={onExpand}
       treeData={transformTreeData(treeData)}
-      {...restProps} // Spread remaining props to Ant Design DirectoryTree component
+      {...restProps} 
     />
   );
 };

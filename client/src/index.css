@@ -45,7 +45,25 @@ code {
 .purple{
   color: purple;
 }
+.black{
+  color: black;
+}
 
 .se-select {
   width: 100%; /* or any specific width you need */
+}
+
+/* Custom CSS to hide the icon by default and show on hover */
+.custom-folder-icon .node-icon {
+  visibility: hidden;
+  transition: visibility 0.3s;
+}
+
+.custom-folder-icon:hover .node-icon {
+  visibility: visible;
+}
+
+/* Optional: Adjust the folder icon color */
+.ant-tree-node-content-wrapper {
+  color: orange !important;
 }

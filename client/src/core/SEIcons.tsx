@@ -13,7 +13,8 @@ import {
   SettingOutlined,
   UserOutlined,
   CloseOutlined,
-  CloseSquareOutlined
+  CloseSquareOutlined,
+  UnorderedListOutlined
 } from "@ant-design/icons";
 export const Icons = {
   SettingOutlined: (props: any) => <SettingOutlined {...props} />,
@@ -28,5 +29,6 @@ export const Icons = {
   FileOutlined:(props:any) => <FileOutlined {...props}/>,
   PlusOutlined :(props:any) => <PlusOutlined  {...props}/>,
   CloseSquareOutlined :(props:any) => <CloseSquareOutlined  {...props}/>,
-  CloseOutlined :(props:any) => <CloseOutlined  {...props}/>
+  CloseOutlined :(props:any) => <CloseOutlined  {...props}/>,
+  UnorderedListOutlined :(props:any) => <UnorderedListOutlined  {...props}/>
 };

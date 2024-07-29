@@ -20,6 +20,10 @@ const TreeArchive :FC= () => {
     console.log('Delete Node with Key:', key);
     // Implement delete functionality
   };
+  const onCreate = (key: React.Key) => {
+    console.log('Delete Node with Key:', key);
+    // Implement delete functionality
+  };
 
   const treeData = [
     {
@@ -78,6 +82,7 @@ const TreeArchive :FC= () => {
       onExpand={onExpand}
       onEdit={onEdit}
       onDelete={onDelete}
+      onCreate={onCreate}
     />
   );
 };

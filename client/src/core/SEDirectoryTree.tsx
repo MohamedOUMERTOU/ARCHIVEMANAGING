@@ -11,6 +11,7 @@ type DirectoryTreeProps = {
   onExpand?: (keys: React.Key[], info: any) => void;
   onEdit?: (key: React.Key) => void;
   onDelete?: (key: React.Key) => void;
+  onCreate?: (key: React.Key) => void;
   className?: string;
 };
 
@@ -22,15 +23,22 @@ const SEDirectoryTree: React.FC<DirectoryTreeProps> = ({
   onExpand,
   onEdit,
   onDelete,
+  onCreate,
   className = 'orange',
   ...restProps
 }) => {
-  const handleMenuClick = (key: React.Key, action: 'edit' | 'delete') => {
+  const handleMenuClick = (key: React.Key, action: 'edit' | 'delete'|'create') => {
     if (action === 'edit' && onEdit) {
       onEdit(key);
     } else if (action === 'delete' && onDelete) {
       onDelete(key);
+    }else if(action === 'create' && onCreate){
+
+      onCreate(key);
     }
+
+      
+    
   };
 
 
@@ -46,6 +54,9 @@ const SEDirectoryTree: React.FC<DirectoryTreeProps> = ({
             </Menu.Item>
             <Menu.Item key="delete" onClick={() => handleMenuClick(node.key, 'delete')}>
               Delete
+            </Menu.Item>
+            <Menu.Item key="delete" onClick={() => handleMenuClick(node.key, 'create')}>
+              Create
             </Menu.Item>
           </Menu>
         }

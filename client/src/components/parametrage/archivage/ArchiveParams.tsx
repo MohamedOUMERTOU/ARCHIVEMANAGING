@@ -28,7 +28,8 @@ const ArchiveParams: FC = () => {
           Type de document
         </span>
       ),
-      children: <Types />, // Correct usage of TypesDocuments component
+      children: <Types />, 
+      
     },
     {
         key: "2",
@@ -38,7 +39,9 @@ const ArchiveParams: FC = () => {
             Paramètrage des actions
           </span>
         ),
-        children: <Index/>, // Replace with your actual content
+        children: <Index/>,
+       
+         // Replace with your actual content
       },
       {
         key: "3",

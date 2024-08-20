@@ -1,32 +1,40 @@
-import React from 'react'
-import SEgrid from '../../../../core/SEgrid'
+import { useEffect, useState } from "react";
+import SEgrid from "../../../../core/SEgrid";
+import { getMetadata } from "./MetadataApis";
 
 const ListMetadata = () => {
-    const columns = [
-        {
-          title: "ID",
-          dataIndex: "idOperation",
-          key: "idOperation",
-        },
-        {
-          title: "Name",
-          dataIndex: "name",
-          key: "name",
-        },
-        {
-          title: "Description",
-          dataIndex: "description",
-          key: "description",
-        }
-      ];
-  return (
-    <SEgrid
-        data={[]}
-        columns={columns}
-        col={24}
-        
-      />
-  )
-}
+  const [data, setData] = useState<any[]>([]);
 
-export default ListMetadata
+  useEffect(() => {
+    const fetchMetadata = async () => {
+      const result = await getMetadata();
+      setData(result);
+    };
+
+    fetchMetadata();
+  }, []);
+
+  const columns = [
+    {
+      title: "ID",
+      dataIndex: "id",
+      key: "id",
+    },
+    {
+      title: "code",
+      dataIndex: "key",
+      key: "key",
+    },
+    {
+      title: "Name",
+      dataIndex: "name",
+      key: "name",
+    },
+  
+  ];
+console.log('my metadata',data);
+
+  return <SEgrid data={data} columns={columns} col={24} />;
+};
+
+export default ListMetadata;

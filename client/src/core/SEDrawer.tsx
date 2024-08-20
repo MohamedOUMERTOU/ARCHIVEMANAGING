@@ -4,6 +4,7 @@ import { Icons } from './SEIcons';
 
 interface SEDrawerProps {
   title: string;
+  name?:string;
   children?: React.ReactNode;
   visible: boolean;
   onClose: () => void;
@@ -16,6 +17,7 @@ const SEDrawer: React.FC<SEDrawerProps> = ({
   title,
   children,
   visible,
+  name,
   onClose,
   placement = 'right',
   width = 300,

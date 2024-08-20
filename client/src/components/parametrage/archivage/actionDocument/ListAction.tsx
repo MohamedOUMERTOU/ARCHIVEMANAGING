@@ -1,7 +1,8 @@
-import { FC, useContext, useEffect, useState } from 'react';
-import SEgrid from '../../../../core/SEgrid';
-import { SEContext } from '../../../../context/userSEContext';
-import { SECore } from '../../../../apis/SECore';
+import { FC, useContext, useEffect, useState } from "react";
+import { SECore } from "../../../../apis/SECore";
+import { SEContext } from "../../../../context/userSEContext";
+import SEgrid from "../../../../core/SEgrid";
+import SECol from "../../../../core/SECol";
 
 const ListAction: FC = () => {
   const context = useContext(SEContext);
@@ -20,6 +21,7 @@ const ListAction: FC = () => {
     fetchActions();
   }, []);
 
+
   const columns = [
     {
       title: "ID",
@@ -35,33 +37,44 @@ const ListAction: FC = () => {
       title: "Description",
       dataIndex: "description",
       key: "description",
-    }
+    },
+  ];
+  const metacolumn = [
+   
+    {
+      title: "code",
+      dataIndex: "key",
+      key: "key",
+    },
+    {
+      title: "Name",
+      dataIndex: "name",
+      key: "name",
+    },
+  
   ];
 
   const handleRowClick = (record: any) => {
     setSelectedItem(record);
   };
 
-  console.log("actions", actions);
-  console.log("selectedItem", selectedItem);
-
   return (
-    <>
-      <SEgrid
-        data={actions}
-        columns={columns}
-        col={12}
-        onRowClick={handleRowClick}
-      />
-      {selectedItem && (
-        <div>
-          <h2>Selected Item Details</h2>
-          <p>ID: {selectedItem.idOperation}</p>
-          <p>Name: {selectedItem.name}</p>
-          <p>Description: {selectedItem.description}</p>
-        </div>
-      )}
-    </>
+    <SECol span={24}offset={2} style={{display:'flex'}}>
+    <SEgrid
+      data={actions}
+      columns={columns}
+      col={12}
+      onRowClick={handleRowClick}
+    />
+    {selectedItem && (
+       <SEgrid
+       data={[selectedItem]}
+       columns={metacolumn}
+       col={12}
+     
+     />
+    )}
+  </SECol>
   );
 };
 

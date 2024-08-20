@@ -7,6 +7,7 @@ import SEButton from '../../../../core/SEButton';
 import SEDrawer from '../../../../core/SEDrawer';
 import ActionForm from './ActionForm';
 import { SEContext } from '../../../../context/userSEContext';
+import { SECore } from '../../../../apis/SECore';
 
 const Index: FC = () => {
   const [visible, setVisible] = useState(false);
@@ -16,9 +17,11 @@ const Index: FC = () => {
     throw new Error("SEContext must be used within a SEContextProvider");
   }
 
-  const { closeDr, setCloseDr } = context;
+  const { closeDr, setCloseDr,actions,setActions } = context;
 
   useEffect(() => {
+
+   
     if (closeDr) {
       setVisible(false);
     } else {
@@ -34,20 +37,22 @@ const Index: FC = () => {
     setVisible(false);
     setCloseDr(true);
   };
+console.log('===vv==',actions);
 
   return (
     <>
       <SECol span={24} offset={8}>
         <SETypography text="Liste des actions" level={3} />
       </SECol>
-      <SEDrawer title="Ajouter une action" visible={visible} placement="right" onClose={closeDrawer}>
-        <ActionForm />
-      </SEDrawer>
+     
       <SEDivider />
       <SECol span={24} offset={8}>
         <SEButton label="Ajouter une action" col={12} type="primary" htmlType="submit" onClick={openDrawer} />
       </SECol>
       <ListAction />
+      <SEDrawer title="Ajouter une action" visible={visible} placement="right" onClose={closeDrawer}>
+        <ActionForm />
+      </SEDrawer>
     </>
   );
 };

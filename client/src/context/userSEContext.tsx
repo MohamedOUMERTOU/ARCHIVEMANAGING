@@ -1,12 +1,14 @@
 import React, { createContext, Dispatch, FC, ReactNode, SetStateAction, useState, useContext } from "react";
-import { Action, MenuItem, User } from "./Types";
+import { Action, MenuItem, User ,Metadata} from "./Types";
 
 interface SEContextType {
   users: User[];
   axes: MenuItem[];
   actions: Action[]; 
+  metadata: Metadata[]; 
   closeDr: boolean;
   setUsers: Dispatch<SetStateAction<User[]>>;
+  setMetadata:Dispatch<SetStateAction<Metadata[]>>;
   setAxes: Dispatch<SetStateAction<MenuItem[]>>;
   setActions: Dispatch<SetStateAction<Action[]>>;
   setCloseDr: Dispatch<SetStateAction<boolean>>;
@@ -18,10 +20,11 @@ export const SEContextProvider: FC<{children: ReactNode}> = ({ children }) => {
   const [users, setUsers] = useState<User[]>([]);
   const [axes, setAxes] = useState<MenuItem[]>([]);
   const [actions, setActions] = useState<Action[]>([]); 
+  const [metadata, setMetadata] = useState<Metadata[]>([]); 
   const [closeDr, setCloseDr] = useState<boolean>(true);
 
   return (
-    <SEContext.Provider value={{ users, setUsers, axes, setAxes, actions, setActions, closeDr, setCloseDr }}>
+    <SEContext.Provider value={{ users, setUsers, axes, setAxes, actions, setActions, closeDr, setCloseDr,metadata, setMetadata }}>
       {children}
     </SEContext.Provider>
   );

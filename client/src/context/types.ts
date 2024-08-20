@@ -16,6 +16,13 @@ export interface User {
     
   }
 
+  export interface Metadata {
+    id: number;
+    key: string;
+    name: string;
+    
+  }
+
   type IconKeys = keyof typeof Icons;
  export interface MenuItem {
     idMenu: number;

@@ -1,0 +1,4 @@
+packages:
+  - "apps/*"
+  # Ancien serveur NestJS, remplacé par Spring Boot : gardé seulement comme référence du modèle de données
+  - "!apps/api"

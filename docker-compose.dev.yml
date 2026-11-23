@@ -1,0 +1,10 @@
+# Développement : expose la base et l'API sur la machine (127.0.0.1 seulement)
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d db server
+#   pnpm dev   →  http://localhost:5173 (Vite transmet /api au port 8080)
+services:
+  db:
+    ports:
+      - "127.0.0.1:5433:5432"
+  server:
+    ports:
+      - "127.0.0.1:8080:8080"

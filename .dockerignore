@@ -1,0 +1,11 @@
+**/node_modules
+**/dist
+**/target
+**/coverage
+**/.env
+**/*.local
+**/storage
+.git
+.vscode
+apps/api
+docs

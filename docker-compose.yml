@@ -1,0 +1,108 @@
+# GED Archives : base PostgreSQL + API Spring Boot + interface React (nginx)
+# Démarrage : cp .env.example .env  (puis changer les secrets)  &&  docker compose up -d --build
+# Application : http://localhost:${WEB_PORT:-8088}
+
+name: ged
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ged
+      POSTGRES_USER: ged
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Définissez POSTGRES_PASSWORD dans .env}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ged -d ged"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  # Stockage objet des fichiers (compatible S3). Les images officielles MinIO n'étant plus publiées
+  # depuis fin 2025, on utilise le fork communautaire maintenu par Pigsty (même binaire, console complète).
+  minio:
+    image: pgsty/minio:RELEASE.2026-08-04T00-00-00Z
+    restart: unless-stopped
+    command: ["server", "/data", "--console-address", ":9001"]
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:?Définissez MINIO_ROOT_USER dans .env}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?Définissez MINIO_ROOT_PASSWORD (8 caractères minimum) dans .env}
+    volumes:
+      - minio-data:/data
+    ports:
+      # Console d'administration : accessible depuis cette machine seulement
+      - "127.0.0.1:${MINIO_CONSOLE_PORT:-9001}:9001"
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:9000/minio/health/live"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  # Préparation unique : bucket versionné, compte applicatif sans droit de suppression
+  minio-init:
+    image: pgsty/minio:RELEASE.2026-08-04T00-00-00Z
+    entrypoint: ["sh", "/init/init.sh"]
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      S3_BUCKET: ${S3_BUCKET:-ged-documents}
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:-ged-app}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:?Définissez S3_SECRET_KEY dans .env}
+      S3_DISPOSAL_ACCESS_KEY: ${S3_DISPOSAL_ACCESS_KEY:-ged-disposal}
+      S3_DISPOSAL_SECRET_KEY: ${S3_DISPOSAL_SECRET_KEY:?Définissez S3_DISPOSAL_SECRET_KEY dans .env}
+    volumes:
+      - ./deploy/minio:/init:ro
+    depends_on:
+      minio:
+        condition: service_healthy
+    restart: "no"
+
+  server:
+    build: ./apps/server
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: jdbc:postgresql://db:5432/ged
+      DATABASE_USER: ged
+      DATABASE_PASSWORD: ${POSTGRES_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET:?Définissez JWT_SECRET (32 caractères minimum) dans .env}
+      # true dès que l'application est servie en HTTPS
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      DEMO_DATA: ${DEMO_DATA:-true}
+      STORAGE_TYPE: s3
+      S3_ENDPOINT: http://minio:9000
+      S3_BUCKET: ${S3_BUCKET:-ged-documents}
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:-ged-app}
+      S3_SECRET_KEY: ${S3_SECRET_KEY}
+      S3_CONSOLE_URL: ${S3_CONSOLE_URL:-http://localhost:9001}
+      # Compte de destruction : utilisé seulement à l'exécution d'un bordereau d'élimination visé
+      S3_DISPOSAL_ACCESS_KEY: ${S3_DISPOSAL_ACCESS_KEY:-ged-disposal}
+      S3_DISPOSAL_SECRET_KEY: ${S3_DISPOSAL_SECRET_KEY}
+      # Ancien stockage sur disque : les fichiers absents du bucket y sont repris au démarrage
+      STORAGE_IMPORT_DIR: /data/storage
+    volumes:
+      - storage:/data/storage:ro
+    depends_on:
+      db:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    restart: unless-stopped
+    ports:
+      - "${WEB_PORT:-8088}:80"
+    depends_on:
+      server:
+        condition: service_healthy
+
+volumes:
+  db-data:
+  # Fichiers des documents (MinIO) : à sauvegarder avec la base
+  minio-data:
+  # Ancien stockage sur disque, lu une fois pour l'import dans MinIO ; supprimable ensuite
+  storage:

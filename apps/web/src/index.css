@@ -1,0 +1,91 @@
+@import 'tailwindcss';
+
+/* Tokens « GED Archives » : piste C (barre latérale bleu nuit, une couleur par module) */
+@theme {
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-display: 'Space Grotesk', 'Inter', sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --color-bg: #f3f5f9;
+  --color-surface: #ffffff;
+  --color-ink: #111827;
+  --color-ink-soft: #374151;
+  --color-muted: #4b5563;
+  --color-line: #e5e7eb;
+  --color-line-strong: #d1d5db;
+
+  --color-primary: #2563eb;
+  --color-primary-strong: #1e40af;
+  --color-primary-soft: #dbeafe;
+
+  --color-success: #166534;
+  --color-success-soft: #dcfce7;
+  --color-warning: #9a3412;
+  --color-warning-soft: #ffedd5;
+  --color-danger: #b91c1c;
+  --color-danger-soft: #fee2e2;
+  --color-info: #3730a3;
+  --color-info-soft: #e0e7ff;
+
+  /* Barre latérale et en-tête foncés */
+  --color-nav: #0f2437;
+  --color-nav-raised: #17324a;
+  --color-nav-line: #22394f;
+  --color-nav-ink: #d6dee8;
+  --color-nav-muted: #b6c3d1;
+
+  /* Une couleur par module : texte/icône sur fond clair, fond teinté, icône sur fond foncé */
+  --color-mod-explorer: #1d4ed8;
+  --color-mod-explorer-soft: #dbeafe;
+  --color-mod-explorer-nav: #93c5fd;
+  --color-mod-inbox: #b45309;
+  --color-mod-inbox-soft: #fef3c7;
+  --color-mod-inbox-nav: #fcd34d;
+  --color-mod-search: #6d28d9;
+  --color-mod-search-soft: #ede9fe;
+  --color-mod-search-nav: #c4b5fd;
+  --color-mod-physical: #0f766e;
+  --color-mod-physical-soft: #ccfbf1;
+  --color-mod-physical-nav: #5eead4;
+  --color-mod-lifecycle: #c2410c;
+  --color-mod-lifecycle-soft: #ffedd5;
+  --color-mod-lifecycle-nav: #fdba74;
+  --color-mod-audit: #475569;
+  --color-mod-audit-soft: #e2e8f0;
+  --color-mod-audit-nav: #cbd5e1;
+  --color-mod-settings: #be185d;
+  --color-mod-settings-soft: #fce7f3;
+  --color-mod-settings-nav: #f9a8d4;
+}
+
+/* Lues par le thème AG Grid (pas par des classes Tailwind) : déclarées hors de @theme */
+:root {
+  /* En-tête des grilles : bleu ciel */
+  --color-grid-head: #e0f2fe;
+  --color-grid-head-hover: #bae6fd;
+  --color-grid-head-ink: #075985;
+  --color-grid-head-line: #0284c7;
+  --color-grid-head-sep: #7dd3fc;
+}
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+  body {
+    @apply bg-bg text-ink font-sans text-sm antialiased;
+  }
+  :focus-visible {
+    @apply outline-primary outline-2 outline-offset-2;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}

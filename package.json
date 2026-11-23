@@ -1,0 +1,16 @@
+{
+  "name": "ged",
+  "private": true,
+  "description": "GED — système de gestion d'archives papier et numériques",
+  "scripts": {
+    "dev": "pnpm --filter @ged/web dev",
+    "build": "pnpm --filter @ged/web build",
+    "test": "pnpm --filter @ged/web test",
+    "lint": "pnpm --filter @ged/web lint",
+    "typecheck": "pnpm --filter @ged/web typecheck"
+  },
+  "packageManager": "pnpm@10.20.0",
+  "pnpm": {
+    "onlyBuiltDependencies": ["esbuild", "msw"]
+  }
+}

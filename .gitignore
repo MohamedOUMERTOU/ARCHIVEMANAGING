@@ -1,0 +1,12 @@
+node_modules/
+dist/
+coverage/
+.env
+*.local
+*.log
+storage/
+.DS_Store
+target/
+.idea/
+*.iml
+.vite/

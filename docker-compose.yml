@@ -62,7 +62,7 @@ services:
     restart: "no"
 
   server:
-    build: ./apps/server
+    build: ./server
     restart: unless-stopped
     environment:
       DATABASE_URL: jdbc:postgresql://db:5432/ged
@@ -94,7 +94,7 @@ services:
   web:
     build:
       context: .
-      dockerfile: apps/web/Dockerfile
+      dockerfile: client/Dockerfile
     restart: unless-stopped
     ports:
       - "${WEB_PORT:-8088}:80"

@@ -47,7 +47,7 @@
 | Couche | Choix | Pourquoi |
 |---|---|---|
 | Backend | Java 25, **Spring Boot 4.2** (Web MVC, Security, Data JPA, JdbcTemplate) | Structure par domaines, validation, sécurité éprouvée |
-| Migrations | Flyway (`apps/server/src/main/resources/db/migration`) | Schéma versionné, appliqué au démarrage |
+| Migrations | Flyway (`server/src/main/resources/db/migration`) | Schéma versionné, appliqué au démarrage |
 | Base de données | **PostgreSQL 16** | Relationnel, JSONB pour les métadonnées dynamiques, recherche plein texte (`ged_fr` : français, sans accents) |
 | Stockage | MinIO (compatible S3), versions d'objets ; dossier local possible | Interface `FileStorage` ; comptes séparés pour l'application, l'élimination et la sauvegarde |
 | Tâches de fond | Planificateur Spring + file en base (`FOR UPDATE SKIP LOCKED`) | Pas de Redis à exploiter ; plusieurs serveurs possibles |
@@ -59,7 +59,7 @@
 
 ## 4. Modèle de données (noyau)
 
-Modèle de départ, pour comprendre les grandes entités. Le schéma réel, qui fait foi, est dans les migrations Flyway (`apps/server/src/main/resources/db/migration`) ; certains noms y diffèrent (bordereaux : `disposal_lists`, texte des documents : `document_texts`…).
+Modèle de départ, pour comprendre les grandes entités. Le schéma réel, qui fait foi, est dans les migrations Flyway (`server/src/main/resources/db/migration`) ; certains noms y diffèrent (bordereaux : `disposal_lists`, texte des documents : `document_texts`…).
 
 ```
 users(id, email, password_hash, name, active)
@@ -157,23 +157,22 @@ inventory_scans(id, campaign_id, location_id NULL, scanned_code, found_in_id,
 ged/
 ├── docker-compose.yml         # db, minio, minio-init, server, web, backup (+ restore)
 ├── .env.example               # secrets et réglages à copier dans .env (jamais commité)
-├── apps/
-│   ├── server/                # API Spring Boot (Maven) ; un paquet par domaine
-│   │   └── src/main/
-│   │       ├── java/com/ged/
-│   │       │   ├── auth/ user/ org/          # connexion, comptes, rôles, sociétés
-│   │       │   ├── classification/           # plan de classement
-│   │       │   ├── document/                 # dépôt, classement, versions, aperçu, recherche
-│   │       │   ├── ocr/                      # lecture du texte, file d'attente, paramétrage
-│   │       │   ├── physical/                 # archives physiques, emplacements, prêts
-│   │       │   ├── retention/ lifecycle/     # conservation, échéances, bordereaux, gels
-│   │       │   ├── audit/                    # journal chaîné
-│   │       │   ├── storage/                  # stockage local ou S3, contrôle d'intégrité
-│   │       │   ├── settings/                 # types, règles, tags, utilisateurs
-│   │       │   ├── seed/                     # données de démonstration
-│   │       │   └── common/ config/           # erreurs, JSON, sécurité, propriétés
-│   │       └── resources/db/migration/       # V1__init.sql, V2… (Flyway)
-│   └── web/                   # SPA React, servie par nginx (organisation : docs/FRONTEND.md)
+├── client/                    # SPA React (pnpm), servie par nginx ; organisation : docs/FRONTEND.md
+├── server/                    # API Spring Boot (Maven) ; un paquet par domaine
+│   └── src/main/
+│       ├── java/com/ged/
+│       │   ├── auth/ user/ org/          # connexion, comptes, rôles, sociétés
+│       │   ├── classification/           # plan de classement
+│       │   ├── document/                 # dépôt, classement, versions, aperçu, recherche
+│       │   ├── ocr/                      # lecture du texte, file d'attente, paramétrage
+│       │   ├── physical/                 # archives physiques, emplacements, prêts
+│       │   ├── retention/ lifecycle/     # conservation, échéances, bordereaux, gels
+│       │   ├── audit/                    # journal chaîné
+│       │   ├── storage/                  # stockage local ou S3, contrôle d'intégrité
+│       │   ├── settings/                 # types, règles, tags, utilisateurs
+│       │   ├── seed/                     # données de démonstration
+│       │   └── common/ config/           # erreurs, JSON, sécurité, propriétés
+│       └── resources/db/migration/       # V1__init.sql, V2… (Flyway)
 ├── deploy/
 │   ├── minio/init.sh          # bucket et comptes : application, élimination, sauvegarde
 │   └── backup/                # image de sauvegarde et de restauration

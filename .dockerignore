@@ -5,7 +5,7 @@
 **/.env
 **/*.local
 /storage
-apps/server/storage
+server/storage
 .git
 .vscode
 docs

@@ -4,8 +4,8 @@ Gestion d'archives papier et numériques, multi-société : plan de classement, 
 
 | Dossier | Contenu |
 |---|---|
-| `apps/server` | API Java 25 · Spring Boot 4.2 · PostgreSQL · Flyway |
-| `apps/web` | Interface React 19 · TypeScript · Vite · Tailwind · TanStack Query · AG Grid |
+| `server` | API Java 25 · Spring Boot 4.2 · PostgreSQL · Flyway |
+| `client` | Interface React 19 · TypeScript · Vite · Tailwind · TanStack Query · AG Grid |
 | `deploy/minio` | Préparation de MinIO : bucket, comptes (application, élimination, sauvegarde) et leurs droits |
 | `deploy/backup` | Image de sauvegarde et de restauration (base et fichiers) |
 | `docs/` | Architecture, diagramme de classes, choix du front-end |
@@ -137,7 +137,7 @@ pnpm dev
 
 ```bash
 pnpm typecheck && pnpm lint && pnpm test && pnpm build      # front-end
-cd apps/server && mvn verify                                 # serveur (JDK 25 et Docker requis)
+cd server && mvn verify                                 # serveur (JDK 25 et Docker requis)
 ```
 
 Les tests du serveur lancent un vrai PostgreSQL et un vrai MinIO avec Testcontainers, d'où le besoin de Docker.

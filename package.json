@@ -3,11 +3,11 @@
   "private": true,
   "description": "GED — système de gestion d'archives papier et numériques",
   "scripts": {
-    "dev": "pnpm --filter @ged/web dev",
-    "build": "pnpm --filter @ged/web build",
-    "test": "pnpm --filter @ged/web test",
-    "lint": "pnpm --filter @ged/web lint",
-    "typecheck": "pnpm --filter @ged/web typecheck"
+    "dev": "pnpm --filter @ged/client dev",
+    "build": "pnpm --filter @ged/client build",
+    "test": "pnpm --filter @ged/client test",
+    "lint": "pnpm --filter @ged/client lint",
+    "typecheck": "pnpm --filter @ged/client typecheck"
   },
   "packageManager": "pnpm@10.20.0",
   "pnpm": {

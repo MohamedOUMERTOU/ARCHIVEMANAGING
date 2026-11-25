@@ -70,7 +70,7 @@ Après un passage à Node 24 (`nvm install 24 && nvm use 24`), on pourra les met
 ## 3. Organisation du code
 
 ```
-apps/web/src/
+client/src/
 ├── app/
 │   ├── config/        # variables d'environnement typées
 │   ├── providers/     # QueryClient, i18n, notifications, routeur
@@ -139,4 +139,4 @@ pnpm build            # build de production, sans le simulateur
 ```
 
 Compte de démonstration de l'API simulée : `admin@exemple.com` / `demo1234`.
-Pour brancher le vrai serveur Spring Boot (port 8080) : mettre `VITE_API_MOCKS=false` dans `apps/web/.env.development.local`. Vite transmet alors `/api` au port 8080.
+Pour brancher le vrai serveur Spring Boot (port 8080) : mettre `VITE_API_MOCKS=false` dans `client/.env.development.local`. Vite transmet alors `/api` au port 8080.

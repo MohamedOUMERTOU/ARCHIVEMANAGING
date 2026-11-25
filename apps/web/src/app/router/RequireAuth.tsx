@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { Navigate, Outlet, useLocation } from 'react-router';
-import { useSessionBootstrap } from '@/features/auth/hooks/useAuth';
+import { useSessionBootstrap } from '@/features/auth';
 
 /** Garde des routes privées : attend la vérification de session, sinon renvoie vers la connexion. */
 export function RequireAuth() {

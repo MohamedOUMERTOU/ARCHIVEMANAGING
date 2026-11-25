@@ -1,5 +1,5 @@
 // Données de démonstration de l'API simulée (identiques aux maquettes)
-import type { ClassificationNode } from '@/features/classification/types';
+import type { ClassificationNode } from '@/features/classification';
 import type { CurrentUser } from '@/types/user';
 
 export const organization = { id: 'org-exsa', code: 'EXSA', name: 'Société Exemple SA' };

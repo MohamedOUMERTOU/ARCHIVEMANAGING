@@ -79,10 +79,18 @@ apps/web/src/
 │   ├── ui/            # composants shadcn/ui (Button, Input, Card…)
 │   ├── shared/        # composants métier réutilisables (états vide/erreur…)
 │   └── layout/        # coque de l'application (en-tête, menu)
-├── features/          # une dossier par fonctionnalité, autonome
-│   ├── auth/          # api/, hooks/, components/, schemas/, pages/
-│   ├── dashboard/
-│   └── classification/
+├── features/          # un dossier par fonctionnalité, autonome
+│   ├── auth/          # connexion, session (api/, hooks/, components/, schemas/, pages/)
+│   ├── dashboard/     # tableau de bord
+│   ├── classification/# plan de classement, explorateur
+│   ├── documents/     # fiche, visionneuse (components/viewer/), texte reconnu
+│   ├── inbox/         # « À classer » et dépôt
+│   ├── search/        # recherche (métadonnées et contenu)
+│   ├── physical/      # emplacements, niveaux, prêts
+│   ├── lifecycle/     # échéancier, bordereaux, gels juridiques
+│   ├── audit/         # journal d'audit
+│   ├── notifications/ # menu des notifications
+│   └── settings/      # paramétrage (dont stockage et reconnaissance de texte)
 ├── hooks/             # hooks génériques
 ├── lib/               # utilitaires techniques (cn, …)
 ├── services/
@@ -96,7 +104,7 @@ apps/web/src/
 └── main.tsx
 ```
 
-Règle : une fonctionnalité expose ses pages et ses hooks ; elle n'importe jamais les fichiers internes d'une autre. Le code partagé va dans `components/shared`, `hooks`, `utils` ou `services`.
+Règle : une fonctionnalité utilisée ailleurs expose son API publique dans son `index.ts` (hooks, composants, types) ; on n'importe jamais les fichiers internes d'une autre fonctionnalité. Seule exception : le routeur (`app/router/routes.tsx`) charge les pages par leur chemin, pour que chaque écran reste dans un fichier à part (lazy loading). Le code partagé va dans `components/shared`, `hooks`, `utils` ou `services`.
 
 ## 4. Authentification avec Spring Boot
 

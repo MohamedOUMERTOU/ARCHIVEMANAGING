@@ -24,42 +24,42 @@
 ## 2. Vue d'ensemble
 
 ```
-┌──────────────────────┐
-│  Frontend (React)    │  SPA : navigation, upload, recherche, administration
-└──────────┬───────────┘
-           │ REST/JSON (JWT)
-┌──────────▼───────────┐       ┌─────────────────┐
-│  API (Node.js / TS)  │──────▶│  Redis (queue)  │
-│  modules métier      │       └────────┬────────┘
-└──┬────────┬──────────┘                │
-   │        │                  ┌────────▼────────┐
-   │        │                  │  Workers        │ OCR, miniatures,
-   │        │                  │  (BullMQ)       │ indexation, purge DUA
-   │        │                  └──┬──────────┬───┘
-┌──▼─────┐ ┌▼──────────────┐      │          │
-│Postgres│ │ Stockage      │◀─────┘          │
-│ (méta, │ │ fichiers      │                 │
-│ audit, │ │ (local ou S3/ │                 │
-│ FTS)   │ │  MinIO)       │                 │
-└────────┘ └───────────────┘◀────────────────┘
+┌───────────────────────────┐
+│  web (nginx)              │  SPA React ; transmet /api au serveur
+└─────────────┬─────────────┘
+              │ REST/JSON (jeton JWT)
+┌─────────────▼─────────────┐
+│  server (Spring Boot)     │  modules métier ; lecture du texte (OCR)
+│                           │  en arrière-plan, file d'attente en base
+└──────┬─────────────┬──────┘
+┌──────▼──────┐ ┌────▼────────────────┐
+│ PostgreSQL  │ │ MinIO (S3)          │
+│ métadonnées,│ │ fichiers déposés,   │
+│ audit, texte│ │ copies avec texte   │
+│ (plein      │ │ reconnu (versions   │
+│  texte)     │ │ d'objets)           │
+└──────▲──────┘ └────▲────────────────┘
+       └──── backup ─┘  chaque nuit : dump vérifié + miroir des fichiers → ./backups
 ```
 
-## 3. Stack recommandée
+## 3. Stack retenue
 
 | Couche | Choix | Pourquoi |
 |---|---|---|
-| Backend | Node.js + TypeScript, **NestJS** (ou Express) | Structure par modules, validation, injection de dépendances |
-| ORM | Prisma | Migrations, typage |
-| Base de données | **PostgreSQL** | Relationnel, JSONB pour les métadonnées dynamiques, recherche plein texte native |
-| Stockage | Disque local au départ → MinIO/S3 ensuite | Couche d'abstraction `StorageProvider` |
-| Files de tâches | BullMQ + Redis | OCR et traitements lourds en asynchrone |
-| OCR | Tesseract (fra + ara + eng) | Gratuit, multilingue |
-| Recherche | Postgres FTS au départ → Meilisearch/Elasticsearch si le volume l'exige | Démarrer simple |
-| Frontend | React + Vite + une bibliothèque UI (MUI / Ant Design) | |
-| Authentification | JWT + RBAC (LDAP/AD en option plus tard) | |
-| Déploiement | Docker Compose | api, worker, postgres, redis, minio, frontend |
+| Backend | Java 25, **Spring Boot 4.2** (Web MVC, Security, Data JPA, JdbcTemplate) | Structure par domaines, validation, sécurité éprouvée |
+| Migrations | Flyway (`apps/server/src/main/resources/db/migration`) | Schéma versionné, appliqué au démarrage |
+| Base de données | **PostgreSQL 16** | Relationnel, JSONB pour les métadonnées dynamiques, recherche plein texte (`ged_fr` : français, sans accents) |
+| Stockage | MinIO (compatible S3), versions d'objets ; dossier local possible | Interface `FileStorage` ; comptes séparés pour l'application, l'élimination et la sauvegarde |
+| Tâches de fond | Planificateur Spring + file en base (`FOR UPDATE SKIP LOCKED`) | Pas de Redis à exploiter ; plusieurs serveurs possibles |
+| OCR | Tesseract 5 (fra, ara, eng) + Apache PDFBox | Gratuit, multilingue, exécuté dans le conteneur `server` |
+| Recherche | PostgreSQL plein texte | Suffisant au volume actuel ; Meilisearch/OpenSearch si besoin plus tard |
+| Frontend | React 19, Vite, Tailwind, TanStack Query, AG Grid, pdf.js | Détail dans `docs/FRONTEND.md` |
+| Authentification | JWT de courte durée + cookie de rafraîchissement ; rôles et permissions | LDAP/AD et double authentification prévus plus tard |
+| Déploiement | Docker Compose | `db`, `minio`, `minio-init`, `server`, `web`, `backup` (+ `restore` à la demande) |
 
 ## 4. Modèle de données (noyau)
+
+Modèle de départ, pour comprendre les grandes entités. Le schéma réel, qui fait foi, est dans les migrations Flyway (`apps/server/src/main/resources/db/migration`) ; certains noms y diffèrent (bordereaux : `disposal_lists`, texte des documents : `document_texts`…).
 
 ```
 users(id, email, password_hash, name, active)
@@ -155,39 +155,38 @@ inventory_scans(id, campaign_id, location_id NULL, scanned_code, found_in_id,
 
 ```
 ged/
-├── docker-compose.yml
-├── docs/
-├── backend/
-│   ├── prisma/schema.prisma
-│   └── src/
-│       ├── main.ts
-│       ├── common/            # guards, filtres, décorateur d'audit
-│       ├── modules/
-│       │   ├── auth/
-│       │   ├── users/
-│       │   ├── classification/
-│       │   ├── documents/
-│       │   ├── document-types/
-│       │   ├── search/
-│       │   ├── retention/
-│       │   ├── physical/
-│       │   └── audit/
-│       ├── storage/           # StorageProvider : local | s3
-│       └── workers/           # ocr, thumbnail, index, retention-cron
-└── frontend/
-    └── src/
-        ├── pages/             # Explorer, Document, Recherche, Admin
-        ├── components/
-        └── api/
+├── docker-compose.yml         # db, minio, minio-init, server, web, backup (+ restore)
+├── .env.example               # secrets et réglages à copier dans .env (jamais commité)
+├── apps/
+│   ├── server/                # API Spring Boot (Maven) ; un paquet par domaine
+│   │   └── src/main/
+│   │       ├── java/com/ged/
+│   │       │   ├── auth/ user/ org/          # connexion, comptes, rôles, sociétés
+│   │       │   ├── classification/           # plan de classement
+│   │       │   ├── document/                 # dépôt, classement, versions, aperçu, recherche
+│   │       │   ├── ocr/                      # lecture du texte, file d'attente, paramétrage
+│   │       │   ├── physical/                 # archives physiques, emplacements, prêts
+│   │       │   ├── retention/ lifecycle/     # conservation, échéances, bordereaux, gels
+│   │       │   ├── audit/                    # journal chaîné
+│   │       │   ├── storage/                  # stockage local ou S3, contrôle d'intégrité
+│   │       │   ├── settings/                 # types, règles, tags, utilisateurs
+│   │       │   ├── seed/                     # données de démonstration
+│   │       │   └── common/ config/           # erreurs, JSON, sécurité, propriétés
+│   │       └── resources/db/migration/       # V1__init.sql, V2… (Flyway)
+│   └── web/                   # SPA React, servie par nginx (organisation : docs/FRONTEND.md)
+├── deploy/
+│   ├── minio/init.sh          # bucket et comptes : application, élimination, sauvegarde
+│   └── backup/                # image de sauvegarde et de restauration
+└── docs/
 ```
 
 ## 6. Flux principal : dépôt d'un document
 
-1. `POST /documents` (multipart) → vérification des droits sur le nœud cible
-2. Calcul du SHA-256, écriture dans le stockage, création de `document` + `version 1`
-3. Écriture dans le journal d'audit
-4. Tâches mises en file : OCR → indexation plein texte → miniature
-5. `retention_until` calculé à partir de la règle de conservation du nœud
+1. `POST /api/documents` (multipart) → vérification de la permission `documents.write`
+2. Copie du fichier dans MinIO avec calcul du SHA-256 au passage ; création du document (statut « à classer ») et de sa version 1
+3. Événement dans l'historique du document et entrée dans le journal d'audit chaîné
+4. Demande de lecture du texte mise en file (si activée) ; en arrière-plan : texte du PDF ou OCR des pages scannées, index plein texte, copie PDF portant le texte reconnu
+5. Au classement : cote attribuée dans le dossier, échéance de conservation calculée selon la règle du dossier ou du type
 
 ## 7. Principes
 

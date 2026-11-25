@@ -6,9 +6,9 @@ Gestion d'archives papier et numériques, multi-société : plan de classement, 
 |---|---|
 | `apps/server` | API Java 25 · Spring Boot 4.2 · PostgreSQL · Flyway |
 | `apps/web` | Interface React 19 · TypeScript · Vite · Tailwind · TanStack Query · AG Grid |
-| `deploy/minio` | Préparation de MinIO : bucket, compte applicatif et ses droits |
+| `deploy/minio` | Préparation de MinIO : bucket, comptes (application, élimination, sauvegarde) et leurs droits |
+| `deploy/backup` | Image de sauvegarde et de restauration (base et fichiers) |
 | `docs/` | Architecture, diagramme de classes, choix du front-end |
-| `apps/api` | Ancien prototype NestJS, gardé comme référence du modèle de données (non utilisé) |
 
 ## Déploiement avec Docker
 

@@ -4,9 +4,9 @@
 **/coverage
 **/.env
 **/*.local
-**/storage
+/storage
+apps/server/storage
 .git
 .vscode
-apps/api
 docs
 backups/

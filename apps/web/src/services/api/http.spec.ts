@@ -1,6 +1,6 @@
 import { http as mswHttp, HttpResponse } from 'msw';
-import { authApi } from '@/features/auth/api/auth.api';
-import { classificationApi } from '@/features/classification/api/classification.api';
+import { authApi } from '@/features/auth';
+import { classificationApi } from '@/features/classification';
 import { expireAccessTokens } from '@/mocks/handlers';
 import { server } from '@/mocks/server';
 import { useAuthStore } from '@/stores/auth.store';

@@ -4,7 +4,9 @@ coverage/
 .env
 *.local
 *.log
-storage/
+# Fichiers déposés en mode « local » (pas le paquet Java com.ged.storage)
+/storage/
+/apps/server/storage/
 .DS_Store
 target/
 .idea/

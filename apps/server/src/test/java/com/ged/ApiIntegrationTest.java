@@ -62,6 +62,8 @@ class ApiIntegrationTest {
         r.add("ged.storage.s3.secret-key", minio::getPassword);
         r.add("ged.storage.s3.bucket", () -> "ged-test");
         r.add("ged.storage.s3.console-url", () -> "http://localhost:9001");
+        // Lecture du texte en arrière-plan : pas de Tesseract ici, et elle continuerait après l'arrêt de la base
+        r.add("ged.ocr.enabled", () -> "false");
         r.add("ged.demo-data.enabled", () -> "true");
     }
 

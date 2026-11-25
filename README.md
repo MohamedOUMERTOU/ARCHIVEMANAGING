@@ -41,7 +41,7 @@ navigateur ──► web (nginx :80) ──/api──► server (Spring Boot :80
 ```
 
 - `web` est publié sur la machine ; la console MinIO l'est aussi, mais sur `127.0.0.1` seulement. La base, l'API et l'API S3 de MinIO restent sur le réseau interne Docker.
-- Volumes à sauvegarder **ensemble** : `ged_db-data` (base) et `ged_minio-data` (fichiers).
+- Base (`ged_db-data`) et fichiers (`ged_minio-data`) sont sauvegardés ensemble par le service `backup` (voir [Sauvegardes](#sauvegardes)).
 
 ### Stockage des fichiers : MinIO
 
@@ -53,6 +53,31 @@ navigateur ──► web (nginx :80) ──/api──► server (Spring Boot :80
 - Les images officielles MinIO ne sont plus publiées depuis fin 2025 : on utilise `pgsty/minio`, le fork communautaire maintenu par Pigsty, en version figée. L'API passe par le SDK S3 standard : un autre service compatible S3 (Garage, SeaweedFS, Ceph, AWS S3…) se branche en changeant seulement `S3_ENDPOINT` et les identifiants.
 - Sans Docker, `STORAGE_TYPE=local` (valeur par défaut) range les fichiers dans `STORAGE_DIR`.
 - Derrière HTTPS : `COOKIE_SECURE=true`.
+
+### Sauvegardes
+
+Le service `backup` sauvegarde chaque nuit (`BACKUP_CRON`, 2 h par défaut, fuseau `TZ`) et à son démarrage, dans `BACKUP_DIR` (`./backups` par défaut) :
+
+| Contenu | Emplacement | Conservation |
+|---|---|---|
+| Base PostgreSQL (`pg_dump`, avec empreinte SHA-256) | `db/ged-AAAAMMJJ-HHMMSS.dump` | `BACKUP_KEEP_DAYS` jours (14) |
+| Fichiers MinIO (miroir incrémental) | `files/ged-documents/…` | état du bucket |
+| Résumé de la dernière sauvegarde réussie | `last-backup.txt`, journal `backup.log` | — |
+
+- La base est sauvegardée avant les fichiers : tout fichier cité par un dump est présent dans le miroir.
+- Le service lit MinIO avec le compte `ged-backup`, **en lecture seule** : il ne peut ni modifier ni supprimer un document.
+- Un document détruit par un bordereau d'élimination quitte le miroir à la sauvegarde suivante, et ses métadonnées quittent les dumps après `BACKUP_KEEP_DAYS` jours.
+- **Placez `BACKUP_DIR` sur un autre disque** (ou un partage réseau), et copiez-le régulièrement hors du site : une sauvegarde sur le même disque ne protège pas d'une panne de ce disque.
+
+```bash
+docker compose exec backup backup.sh                       # sauvegarde immédiate
+docker compose --profile restore run --rm restore          # liste des sauvegardes
+docker compose stop server                                 # restauration : arrêter l'API,
+docker compose --profile restore run --rm restore latest --yes   # restaurer (ou un horodatage)
+docker compose start server                                # puis Paramétrage › Stockage › Contrôler
+```
+
+La restauration **remplace la base** par celle du dump et recopie dans le bucket les fichiers absents (rien n'est supprimé du bucket). Pour un essai sans toucher aux données : `-e PGDATABASE=une_base_vide -e RESTORE_BUCKET=un-bucket-de-test`.
 
 ### Commandes utiles
 
@@ -72,12 +97,30 @@ Menu **Cycle de vie** (rôles `lifecycle.manage` et `lifecycle.approve`) :
   - Seuls des documents échus, dont le sort final correspond, hors gel et hors autre bordereau peuvent y figurer.
   - **Quatre yeux** : le visa est donné par une autre personne que l'auteur (contrôlé aussi par la base).
   - Pendant le visa, les documents proposés à l'élimination sont figés.
-  - **Élimination** : toutes les versions sont détruites dans MinIO, par un compte dédié (`ged-disposal`), seul autorisé à supprimer. Notice, historique et bordereau restent : le bordereau exécuté tient lieu de procès-verbal (export CSV, impression).
+  - **Élimination** : toutes les versions sont détruites dans MinIO, par un compte dédié (`ged-disposal`), seul autorisé à supprimer, ainsi que le texte lu dans les fichiers et les copies avec texte reconnu. Notice, historique et bordereau restent : le bordereau exécuté tient lieu de procès-verbal (export CSV, impression).
   - **Versement** : paquet ZIP (fichiers + `manifest.json` avec métadonnées et empreintes SHA-256), puis passage au statut « versé ».
   - L'exécution est refusée si un document a été gelé entre-temps ou si son original papier est prêté.
 - **Gels juridiques** : suspendent tout sort final, toute modification et tout reclassement des documents concernés, jusqu'à la levée motivée.
 
 Données de démonstration : contrats et dossiers du personnel échus, un gel « Litige fournisseur d'énergie », et un bordereau d'élimination préparé par l'archiviste, en attente du visa de l'administrateur ou de la juriste.
+
+## Recherche dans le contenu (OCR)
+
+Le texte de chaque fichier déposé est lu en arrière-plan, sans faire attendre la personne qui dépose :
+
+| Fichier | Lecture |
+|---|---|
+| PDF avec du texte | Texte repris tel quel, page par page |
+| PDF scanné (ou en partie) | Pages sans texte reconnues par **Tesseract** (français, arabe, anglais), dans le conteneur `server` : rien ne sort du serveur |
+| Image (PNG, JPEG, TIFF, WebP…) | Reconnaissance, page par page pour un TIFF multipage |
+| Texte brut | Repris tel quel |
+
+- **Recherche** : « Chercher dans » Tout, Titre et métadonnées, ou Contenu des fichiers. Accents et pluriels ignorés, `"expression exacte"`, `-mot` pour exclure. Chaque résultat cite les pages trouvées ; « Ouvrir à la page 2 » ouvre l'aperçu à cette page, mot surligné.
+- **Copie avec texte reconnu** : pour un scan ou une image, une copie PDF porte le texte en couche invisible. L'aperçu l'utilise (recherche Ctrl+F et copie possibles, un TIFF devient affichable) ; **le fichier déposé n'est jamais modifié**. Son téléchargement est une option du paramétrage.
+- **Fiche du document** : bloc « Texte du fichier » (état, langues, lisibilité, « Voir le texte », « Relancer »).
+- **Paramétrage › Reconnaissance de texte** : lecture au dépôt, langues, détection des pages tournées ; avancement, pause, « Lire ces N documents » pour les documents déposés avant l'activation, relance des échecs.
+
+Réglages techniques (variables d'environnement du conteneur `server`) : `OCR_ENABLED` (true), `OCR_DPI` (300), `OCR_MAX_PAGES` (500), `OCR_PAGE_TIMEOUT` (3m), `OCR_LOW_CONFIDENCE` (65 : en dessous, le document est signalé « peu lisible »).
 
 ## Développement
 

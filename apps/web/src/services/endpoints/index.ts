@@ -20,6 +20,11 @@ export const endpoints = {
     viewLink: (id: string, versionNo: number) => `/documents/${id}/versions/${String(versionNo)}/view-link`,
     events: (id: string) => `/documents/${id}/events`,
     requests: (id: string) => `/documents/${id}/requests`,
+    text: (id: string) => `/documents/${id}/text`,
+    textPages: (id: string) => `/documents/${id}/text/pages`,
+    textRetry: (id: string) => `/documents/${id}/text/retry`,
+    searchable: (id: string, versionNo: number) =>
+      `/documents/${id}/versions/${String(versionNo)}/searchable`,
   },
   documentTypes: '/document-types',
   tags: '/tags',

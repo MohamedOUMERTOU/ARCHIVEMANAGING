@@ -2,7 +2,7 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tansta
 import { toast } from 'sonner';
 import { classificationKeys } from '@/features/classification';
 import { documentKeys, documentsApi } from '../api/documents.api';
-import type { ClassifyInput, RequestKind, SearchParams } from '../types';
+import type { ClassifyInput, RequestKind, SearchParams, TextStatus } from '../types';
 
 export function useDocumentSearch(params: SearchParams, enabled = true) {
   return useQuery({
@@ -35,6 +35,57 @@ export function useViewLink(id: string, versionNo: number | undefined) {
     enabled: versionNo !== undefined,
     staleTime: Infinity,
     gcTime: 0,
+  });
+}
+
+/** Le texte est en cours de lecture : l'état est relu toutes les 3 secondes jusqu'à la fin. */
+const reading = (s: TextStatus | undefined) => s?.status === 'EN_ATTENTE' || s?.status === 'EN_COURS';
+
+export function useDocumentText(id: string, versionNo: number | undefined) {
+  const qc = useQueryClient();
+  return useQuery({
+    queryKey: documentKeys.text(id, versionNo ?? 0),
+    queryFn: async () => {
+      const previous = qc.getQueryData<TextStatus>(documentKeys.text(id, versionNo ?? 0));
+      const next = await documentsApi.text(id, versionNo ?? 1);
+      // Lecture terminée : l'aperçu peut maintenant montrer la copie avec le texte reconnu
+      if (reading(previous) && !reading(next) && next.searchableCopy) {
+        void qc.invalidateQueries({ queryKey: ['document-view', id, versionNo] });
+      }
+      return next;
+    },
+    enabled: versionNo !== undefined,
+    refetchInterval: (q) => (reading(q.state.data) ? 3000 : false),
+  });
+}
+
+export function useTextPages(id: string, versionNo: number, enabled: boolean) {
+  return useQuery({
+    queryKey: documentKeys.textPages(id, versionNo),
+    queryFn: () => documentsApi.textPages(id, versionNo),
+    enabled,
+  });
+}
+
+export function useRetryText(id: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (versionNo: number) => documentsApi.retryText(id, versionNo),
+    onSuccess: (status) => {
+      qc.setQueryData(documentKeys.text(id, status.versionNo), status);
+      void qc.invalidateQueries({ queryKey: documentKeys.events(id) });
+    },
+  });
+}
+
+export function useDownloadSearchable() {
+  const invalidate = useInvalidateDocuments();
+  return useMutation({
+    mutationFn: ({ id, versionNo, filename }: { id: string; versionNo: number; filename: string }) =>
+      documentsApi.downloadSearchable(id, versionNo, filename),
+    onSuccess: (_d, vars) => {
+      invalidate(vars.id);
+    },
   });
 }
 

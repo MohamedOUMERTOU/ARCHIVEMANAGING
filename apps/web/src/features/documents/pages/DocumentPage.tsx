@@ -1,4 +1,13 @@
-import { ArrowRightLeft, Download, Eye, FilePlus2, Lock, Send } from 'lucide-react';
+import {
+  ArrowRightLeft,
+  Download,
+  Eye,
+  FilePlus2,
+  Lock,
+  PanelRightClose,
+  PanelRightOpen,
+  Send,
+} from 'lucide-react';
 import { useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useParams, useSearchParams } from 'react-router';
@@ -10,37 +19,59 @@ import { HoldPickerDialog } from '@/features/lifecycle';
 import { OriginalCard } from '@/features/physical';
 import { cn } from '@/lib/cn';
 import { hasPermission, useAuthStore } from '@/stores/auth.store';
-import { formatDate, formatDateTime, formatSize, shortHash } from '@/utils/format';
+import { formatDate, formatDateTime, formatSize } from '@/utils/format';
 import { NewVersionDialog, ReclassifyDialog, RequestDialog } from '../components/DocumentDialogs';
 import { DocumentViewer } from '../components/DocumentViewer';
 import { LifecycleCard } from '../components/LifecycleCard';
 import { HistoryTimeline } from '../components/HistoryTimeline';
 import { StatusBadge } from '../components/StatusBadge';
+import { TextCard } from '../components/TextCard';
 import { useDocument, useDownload } from '../hooks/useDocuments';
 import type { DocumentDetail } from '../types';
 
 type DialogName = 'version' | 'request' | 'reclassify' | 'hold' | null;
-type Tab = 'preview' | 'details' | 'history';
+type Tab = 'document' | 'history';
 
-// L'onglet est dans l'adresse (?onglet=…) : un lien peut ouvrir directement l'historique
-const TAB_PARAM: Record<Tab, string> = { preview: '', details: 'details', history: 'historique' };
-const TAB_FROM_PARAM: Partial<Record<string, Tab>> = { details: 'details', historique: 'history' };
-const TABS: Tab[] = ['preview', 'details', 'history'];
-const TAB_LABEL = {
-  preview: 'doc.tabPreview',
-  details: 'doc.tabDetails',
-  history: 'doc.tabHistory',
-} as const;
+// L'onglet est dans l'adresse (?onglet=…) : un lien peut ouvrir directement l'historique.
+// « details » (ancien onglet Métadonnées) mène au document : la fiche y est affichée à côté de l'aperçu.
+const TAB_PARAM: Record<Tab, string> = { document: '', history: 'historique' };
+const TAB_FROM_PARAM: Partial<Record<string, Tab>> = { details: 'document', historique: 'history' };
+const TABS: Tab[] = ['document', 'history'];
+const TAB_LABEL = { document: 'doc.tabDocument', history: 'doc.tabHistory' } as const;
+
+// Fiche masquée ou non : mémorisé sur ce poste
+const SHEET_KEY = 'ged.documentSheet';
+const readSheetOpen = () => {
+  try {
+    return localStorage.getItem(SHEET_KEY) !== 'hidden';
+  } catch {
+    return true;
+  }
+};
 
 export default function DocumentPage() {
   const { t } = useTranslation();
   const { id = '' } = useParams();
   const [params, setParams] = useSearchParams();
-  const tab = TAB_FROM_PARAM[params.get('onglet') ?? ''] ?? 'preview';
+  const tab = TAB_FROM_PARAM[params.get('onglet') ?? ''] ?? 'document';
   const versionParam = Number(params.get('version')) || undefined;
+  // Depuis un résultat de recherche : ouvrir à la page trouvée, mot cherché surligné
+  const pageParam = Number(params.get('page')) || undefined;
+  const queryParam = params.get('q') ?? undefined;
+  const [sheetOpen, setSheetOpen] = useState(readSheetOpen);
+  const toggleSheet = () => {
+    setSheetOpen((open) => {
+      try {
+        localStorage.setItem(SHEET_KEY, open ? 'hidden' : 'shown');
+      } catch {
+        // stockage indisponible (navigation privée) : le choix vaut pour la page
+      }
+      return !open;
+    });
+  };
   const goTo = (next: Tab, versionNo?: number) => {
     const p: Record<string, string> = {};
-    if (next !== 'preview') p.onglet = TAB_PARAM[next];
+    if (next !== 'document') p.onglet = TAB_PARAM[next];
     if (versionNo !== undefined) p.version = String(versionNo);
     setParams(p, { replace: true });
   };
@@ -190,53 +221,85 @@ export default function DocumentPage() {
         </div>
       )}
 
-      <div role="tablist" aria-label={t('doc.tabsLabel')} className="border-line flex gap-1 border-b">
-        {TABS.map((name) => (
-          <button
-            key={name}
-            role="tab"
-            type="button"
-            aria-selected={tab === name}
-            onClick={() => {
-              goTo(name, name === 'preview' ? versionParam : undefined);
-            }}
-            className={cn(
-              '-mb-px border-b-2 px-4 py-2.5 font-medium',
-              tab === name
-                ? 'border-primary text-primary-strong font-semibold'
-                : 'text-ink-soft border-transparent',
-            )}
+      <div className="border-line flex flex-wrap items-end gap-2 border-b">
+        <div role="tablist" aria-label={t('doc.tabsLabel')} className="flex gap-1">
+          {TABS.map((name) => (
+            <button
+              key={name}
+              role="tab"
+              type="button"
+              aria-selected={tab === name}
+              onClick={() => {
+                goTo(name, name === 'document' ? versionParam : undefined);
+              }}
+              className={cn(
+                '-mb-px border-b-2 px-4 py-2.5 font-medium',
+                tab === name
+                  ? 'border-primary text-primary-strong font-semibold'
+                  : 'text-ink-soft border-transparent',
+              )}
+            >
+              {t(TAB_LABEL[name])}
+            </button>
+          ))}
+        </div>
+        {tab === 'document' && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="mb-1 ml-auto"
+            aria-expanded={sheetOpen}
+            aria-controls="document-sheet"
+            onClick={toggleSheet}
           >
-            {t(TAB_LABEL[name])}
-          </button>
-        ))}
+            {sheetOpen ? <PanelRightClose aria-hidden="true" /> : <PanelRightOpen aria-hidden="true" />}
+            {sheetOpen ? t('doc.hideSheet') : t('doc.showSheet')}
+          </Button>
+        )}
       </div>
 
       <div role="tabpanel">
         {tab === 'history' ? (
           <HistoryTimeline documentId={doc.id} />
-        ) : tab === 'details' ? (
-          <Details
-            doc={doc}
-            onView={(versionNo) => {
-              goTo('preview', versionNo);
-            }}
-          />
-        ) : destroyed ? (
-          <EmptyState
-            title="Contenu détruit"
-            hint="Ce document a été éliminé à l'issue de sa durée de conservation. Consultez l'onglet Historique pour le bordereau."
-          />
         ) : (
-          <DocumentViewer
-            documentId={doc.id}
-            title={doc.title}
-            versions={doc.versions}
-            versionNo={versionParam}
-            onVersionChange={(versionNo) => {
-              goTo('preview', versionNo);
-            }}
-          />
+          <div className="flex flex-wrap items-start gap-4">
+            <div className="min-w-0 flex-[999_1_560px]">
+              {destroyed ? (
+                <EmptyState
+                  title="Contenu détruit"
+                  hint="Ce document a été éliminé à l'issue de sa durée de conservation. Consultez l'onglet Historique pour le bordereau."
+                />
+              ) : (
+                <DocumentViewer
+                  documentId={doc.id}
+                  title={doc.title}
+                  versions={doc.versions}
+                  versionNo={versionParam}
+                  initialPage={pageParam}
+                  initialQuery={queryParam}
+                  onVersionChange={(versionNo) => {
+                    goTo('document', versionNo);
+                  }}
+                />
+              )}
+            </div>
+            {sheetOpen && (
+              <aside
+                id="document-sheet"
+                aria-label={t('doc.sheetLabel')}
+                className="flex min-w-0 flex-[1_1_320px] flex-col gap-4 xl:max-w-[380px]"
+              >
+                <Sheet
+                  doc={doc}
+                  canWrite={canWrite}
+                  shownVersion={destroyed ? undefined : (versionParam ?? current?.versionNo)}
+                  onView={(versionNo) => {
+                    goTo('document', versionNo);
+                  }}
+                />
+              </aside>
+            )}
+          </div>
         )}
       </div>
 
@@ -277,131 +340,167 @@ function Row({ label, children }: { label: string; children: ReactNode }) {
   );
 }
 
-function Details({ doc, onView }: { doc: DocumentDetail; onView: (versionNo: number) => void }) {
+/** Fiche affichée à côté de l'aperçu : métadonnées, cycle de vie, original papier, conservation, versions. */
+function Sheet({
+  doc,
+  canWrite,
+  shownVersion,
+  onView,
+}: {
+  doc: DocumentDetail;
+  canWrite: boolean;
+  /** Version en cours d'affichage dans l'aperçu */
+  shownVersion: number | undefined;
+  onView: (versionNo: number) => void;
+}) {
   const { t } = useTranslation();
   const download = useDownload();
   const fields = doc.type?.metadataSchema ?? [];
   const rule = doc.retentionRule;
+  const destroyed = doc.status === 'ELIMINE';
+  const displayed = doc.versions.find((v) => v.versionNo === shownVersion);
 
   return (
-    <div className="flex flex-wrap items-start gap-5">
-      <div className="flex min-w-0 flex-[1_1_420px] flex-col gap-5">
-        <Card className="flex flex-col gap-3">
-          <CardTitle>
-            {t('doc.metadata')}
-            {doc.type && (
-              <span className="text-muted font-sans text-[13px] font-normal"> · {doc.type.name}</span>
+    <>
+      <Card className="flex flex-col gap-3">
+        <CardTitle>
+          {t('doc.metadata')}
+          {doc.type && (
+            <span className="text-muted font-sans text-[13px] font-normal"> · {doc.type.name}</span>
+          )}
+        </CardTitle>
+        <dl className={SHEET_GRID}>
+          <Row label={t('doc.date')}>{formatDate(doc.documentDate)}</Row>
+          {fields.map((f) => {
+            const v = doc.metadata[f.key];
+            return (
+              <Row key={f.key} label={f.label}>
+                {typeof v === 'string' || typeof v === 'number' ? String(v) : '—'}
+              </Row>
+            );
+          })}
+          <Row label={t('doc.tags')}>
+            {doc.tags.length ? (
+              <span className="flex flex-wrap gap-1.5">
+                {doc.tags.map((tag) => (
+                  <Badge key={tag} tone="info">
+                    {tag}
+                  </Badge>
+                ))}
+              </span>
+            ) : (
+              '—'
             )}
-          </CardTitle>
-          <dl className="grid grid-cols-[minmax(0,150px)_minmax(0,1fr)] gap-x-4 gap-y-2.5">
-            <Row label={t('doc.date')}>{formatDate(doc.documentDate)}</Row>
-            {fields.map((f) => {
-              const v = doc.metadata[f.key];
-              return (
-                <Row key={f.key} label={f.label}>
-                  {typeof v === 'string' || typeof v === 'number' ? String(v) : '—'}
-                </Row>
-              );
-            })}
-            <Row label={t('doc.tags')}>
-              {doc.tags.length ? (
-                <span className="flex flex-wrap gap-1.5">
-                  {doc.tags.map((tag) => (
-                    <Badge key={tag} tone="info">
-                      {tag}
-                    </Badge>
-                  ))}
-                </span>
-              ) : (
-                '—'
-              )}
-            </Row>
-          </dl>
-        </Card>
+          </Row>
+        </dl>
+      </Card>
 
-        <LifecycleCard doc={doc} />
+      {displayed && !destroyed && <TextCard documentId={doc.id} version={displayed} canWrite={canWrite} />}
 
-        {filedForPaper(doc) && (
-          <OriginalCard
-            documentId={doc.id}
-            documentTitle={doc.title}
-            location={doc.physicalLocation}
-            openLoan={doc.openLoan}
-          />
-        )}
+      <LifecycleCard doc={doc} />
 
-        <Card className="flex flex-col gap-3">
-          <CardTitle>{t('doc.retention')}</CardTitle>
-          <dl className="grid grid-cols-[minmax(0,150px)_minmax(0,1fr)] gap-x-4 gap-y-2.5">
-            <Row label={t('doc.rule')}>
-              {rule ? (
-                <>
-                  {rule.name} ·{' '}
-                  {rule.durationYears === null ? t('doc.unlimited') : `${String(rule.durationYears)} ans`}
-                  {rule.inherited && <span className="text-muted font-normal"> ({t('doc.inherited')})</span>}
-                </>
-              ) : (
-                '—'
-              )}
-            </Row>
-            <Row label={t('doc.until')}>
-              {doc.retentionUntil
-                ? formatDate(doc.retentionUntil)
-                : rule?.durationYears === null
-                  ? t('doc.unlimited')
-                  : rule
-                    ? t('doc.untilPending')
-                    : '—'}
-            </Row>
-            <Row label={t('doc.finalAction')}>{rule ? t(`doc.finalActions.${rule.finalAction}`) : '—'}</Row>
-          </dl>
-        </Card>
-      </div>
+      {filedForPaper(doc) && (
+        <OriginalCard
+          documentId={doc.id}
+          documentTitle={doc.title}
+          location={doc.physicalLocation}
+          openLoan={doc.openLoan}
+        />
+      )}
 
-      <Card className="flex min-w-0 flex-[1_1_380px] flex-col gap-0 p-0">
+      <Card className="flex flex-col gap-3">
+        <CardTitle>{t('doc.retention')}</CardTitle>
+        <dl className={SHEET_GRID}>
+          <Row label={t('doc.rule')}>
+            {rule ? (
+              <>
+                {rule.name} ·{' '}
+                {rule.durationYears === null ? t('doc.unlimited') : `${String(rule.durationYears)} ans`}
+                {rule.inherited && <span className="text-muted font-normal"> ({t('doc.inherited')})</span>}
+              </>
+            ) : (
+              '—'
+            )}
+          </Row>
+          <Row label={t('doc.until')}>
+            {doc.retentionUntil
+              ? formatDate(doc.retentionUntil)
+              : rule?.durationYears === null
+                ? t('doc.unlimited')
+                : rule
+                  ? t('doc.untilPending')
+                  : '—'}
+          </Row>
+          <Row label={t('doc.finalAction')}>{rule ? t(`doc.finalActions.${rule.finalAction}`) : '—'}</Row>
+        </dl>
+      </Card>
+
+      <Card className="flex flex-col gap-0 p-0">
         <CardTitle className="px-5 pt-4 pb-2">{t('doc.versions')}</CardTitle>
         <ul>
-          {doc.versions.map((v, i) => (
-            <li
-              key={v.versionNo}
-              className="border-line/70 flex flex-wrap items-center gap-3 border-t px-5 py-3"
-            >
-              <span className="w-8 font-semibold">v{v.versionNo}</span>
-              <div className="flex min-w-0 flex-1 flex-col">
-                <span className="truncate">{v.filename}</span>
-                <span className="text-muted text-xs">
-                  {formatDateTime(v.createdAt)} · {v.createdBy} · {formatSize(v.sizeBytes)}
-                  {v.replaceReason && <> · {v.replaceReason}</>}
-                </span>
-              </div>
-              <span title={v.sha256} className="text-ink-soft font-mono text-xs">
-                sha256 {shortHash(v.sha256)}
-              </span>
-              {i === 0 && <Badge tone="success">{t('doc.current')}</Badge>}
-              <Button
-                variant="ghost"
-                size="sm"
-                aria-label={`${t('doc.view')} v${String(v.versionNo)}`}
-                onClick={() => {
-                  onView(v.versionNo);
-                }}
+          {doc.versions.map((v, i) => {
+            const shown = v.versionNo === shownVersion;
+            return (
+              <li
+                key={v.versionNo}
+                aria-current={shown ? 'true' : undefined}
+                className={cn(
+                  'border-line/70 flex items-start gap-3 border-t border-l-4 px-4 py-2.5',
+                  shown ? 'bg-primary-soft/60 border-l-primary' : 'border-l-transparent',
+                )}
               >
-                <Eye aria-hidden="true" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                aria-label={`${t('doc.download')} v${String(v.versionNo)}`}
-                onClick={() => {
-                  download.mutate({ id: doc.id, versionNo: v.versionNo, filename: v.filename });
-                }}
-              >
-                <Download aria-hidden="true" />
-              </Button>
-            </li>
-          ))}
+                <span className="w-7 shrink-0 pt-0.5 font-semibold">v{v.versionNo}</span>
+                <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                  <span className="text-[13px] break-all" title={v.filename}>
+                    {v.filename}
+                  </span>
+                  <span className="text-muted text-xs" title={`sha256 ${v.sha256}`}>
+                    {formatDateTime(v.createdAt)} · {formatSize(v.sizeBytes)}
+                    {v.replaceReason && <> · {v.replaceReason}</>}
+                  </span>
+                  {(i === 0 || shown) && (
+                    <span className="flex flex-wrap items-center gap-1.5 pt-0.5">
+                      {i === 0 && <Badge tone="success">{t('doc.current')}</Badge>}
+                      {shown && !destroyed && (
+                        <span className="text-primary-strong text-xs font-semibold">{t('doc.shown')}</span>
+                      )}
+                    </span>
+                  )}
+                </div>
+                {!destroyed &&
+                  (shown ? null : (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="px-2"
+                      aria-label={`${t('doc.view')} v${String(v.versionNo)}`}
+                      onClick={() => {
+                        onView(v.versionNo);
+                      }}
+                    >
+                      <Eye aria-hidden="true" />
+                    </Button>
+                  ))}
+                {!destroyed && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="px-2"
+                    aria-label={`${t('doc.download')} v${String(v.versionNo)}`}
+                    onClick={() => {
+                      download.mutate({ id: doc.id, versionNo: v.versionNo, filename: v.filename });
+                    }}
+                  >
+                    <Download aria-hidden="true" />
+                  </Button>
+                )}
+              </li>
+            );
+          })}
         </ul>
       </Card>
-    </div>
+    </>
   );
 }
+
+const SHEET_GRID = 'grid grid-cols-[minmax(0,120px)_minmax(0,1fr)] gap-x-4 gap-y-2.5 text-[13px]';

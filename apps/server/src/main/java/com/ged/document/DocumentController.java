@@ -68,8 +68,9 @@ public class DocumentController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(required = false) String sort,
-            @RequestParam(required = false) UUID locationId) {
-        return service.search(new SearchQuery(q, status, typeId, nodeId, from, to, tag, page, size, sort, locationId));
+            @RequestParam(required = false) UUID locationId,
+            @RequestParam(required = false) String in) {
+        return service.search(new SearchQuery(q, status, typeId, nodeId, from, to, tag, page, size, sort, locationId, in));
     }
 
     @PostMapping(path = "/documents", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -129,14 +130,14 @@ public class DocumentController {
     /** Contenu affichable dans le navigateur ; accès par jeton (pas d'en-tête Authorization possible). */
     @GetMapping("/documents/{id}/versions/{versionNo}/view")
     ResponseEntity<Resource> view(@PathVariable UUID id, @PathVariable int versionNo, @RequestParam String token) {
-        DocumentService.Download d = service.openView(id, versionNo, token);
+        DocumentService.View d = service.openView(id, versionNo, token);
         ContentDisposition disposition = ContentDisposition.inline()
-                .filename(d.version().getFilename(), StandardCharsets.UTF_8).build();
+                .filename(d.filename(), StandardCharsets.UTF_8).build();
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, disposition.toString())
                 .header(HttpHeaders.CACHE_CONTROL, "private, no-store")
                 .header("X-Content-Type-Options", "nosniff")
-                .contentType(MediaType.parseMediaType(d.version().getMimeType()))
+                .contentType(MediaType.parseMediaType(d.mimeType()))
                 // Resource en corps de réponse : Spring gère les requêtes partielles (Range) du lecteur PDF
                 .body(d.resource());
     }

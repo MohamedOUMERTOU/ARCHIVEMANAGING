@@ -24,6 +24,11 @@ spring:
     problemdetails:
       enabled: true
 
+logging:
+  level:
+    # PDFBox signale chaque police remplacée à la lecture d'un PDF : sans intérêt ici
+    org.apache.pdfbox: ERROR
+
 server:
   port: ${PORT:8080}
   forward-headers-strategy: framework
@@ -70,3 +75,11 @@ ged:
       disposal-secret-key: ${S3_DISPOSAL_SECRET_KEY:}
   demo-data:
     enabled: ${DEMO_DATA:true}
+  ocr:
+    # Lecture du texte des fichiers : texte des PDF, reconnaissance (Tesseract) des scans et des images
+    enabled: ${OCR_ENABLED:true}
+    tesseract: ${OCR_TESSERACT:tesseract}
+    dpi: ${OCR_DPI:300}
+    max-pages: ${OCR_MAX_PAGES:500}
+    page-timeout: ${OCR_PAGE_TIMEOUT:3m}
+    low-confidence: ${OCR_LOW_CONFIDENCE:65}

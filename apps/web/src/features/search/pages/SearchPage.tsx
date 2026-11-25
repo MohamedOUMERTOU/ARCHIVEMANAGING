@@ -1,4 +1,4 @@
-import { Info, Search, X } from 'lucide-react';
+import { Info, ScanText, Search, X } from 'lucide-react';
 import { useState, type SubmitEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useSearchParams } from 'react-router';
@@ -19,11 +19,14 @@ import {
   type DocumentStatus,
   type DocumentSummary,
   type SearchParams,
+  snippetParts,
 } from '@/features/documents';
+import { cn } from '@/lib/cn';
 import { formatDate, formatSize } from '@/utils/format';
 
-const KEYS = ['q', 'typeId', 'nodeId', 'status', 'from', 'to', 'tag', 'sort'] as const;
-const SORTS = ['date', 'title', 'reference', 'created'] as const;
+const KEYS = ['q', 'in', 'typeId', 'nodeId', 'status', 'from', 'to', 'tag', 'sort'] as const;
+const SORTS = ['relevance', 'date', 'title', 'reference', 'created'] as const;
+const SCOPES = ['', 'meta', 'content'] as const;
 const PAGE_SIZE = 12;
 
 /** Les critères vivent dans l'adresse : une recherche se partage et se met en favori. */
@@ -31,15 +34,23 @@ function readParams(p: URLSearchParams): SearchParams {
   const get = (k: string) => p.get(k) ?? undefined;
   const status = get('status');
   const sort = get('sort');
+  const scope = get('in');
+  const q = get('q');
   return {
-    q: get('q'),
+    q,
+    in: scope === 'meta' || scope === 'content' ? scope : undefined,
     typeId: get('typeId'),
     nodeId: get('nodeId'),
     status: STATUSES.includes(status as DocumentStatus) ? (status as DocumentStatus) : undefined,
     from: get('from'),
     to: get('to'),
     tag: get('tag'),
-    sort: SORTS.includes(sort as (typeof SORTS)[number]) ? (sort as SearchParams['sort']) : undefined,
+    // Avec des mots-clés, les résultats les plus pertinents d'abord (sauf autre choix)
+    sort: SORTS.includes(sort as (typeof SORTS)[number])
+      ? (sort as SearchParams['sort'])
+      : q
+        ? 'relevance'
+        : undefined,
     page: Number(p.get('page') ?? 0) || 0,
     size: PAGE_SIZE,
   };
@@ -100,6 +111,30 @@ export default function SearchPage() {
             {t('search.submit')}
           </Button>
         </div>
+        <fieldset className="flex flex-wrap items-center gap-x-4 gap-y-2">
+          <legend className="sr-only">{t('search.scope')}</legend>
+          <span aria-hidden="true" className="text-ink-soft text-[13px] font-medium">
+            {t('search.scope')}
+          </span>
+          <div className="border-line-strong inline-flex overflow-hidden rounded-lg border">
+            {SCOPES.map((s) => (
+              <label
+                key={s || 'all'}
+                className="has-checked:bg-primary-soft has-checked:text-primary-strong has-focus-visible:outline-primary border-line-strong text-ink-soft flex h-9 cursor-pointer items-center border-l px-3.5 text-[13px] font-medium first:border-l-0 has-checked:font-semibold has-focus-visible:outline-2 has-focus-visible:-outline-offset-2"
+              >
+                <input
+                  type="radio"
+                  name="in"
+                  value={s}
+                  defaultChecked={(query.in ?? '') === s}
+                  className="sr-only"
+                />
+                {t(`search.scopes.${s || 'all'}`)}
+              </label>
+            ))}
+          </div>
+          <p className="text-muted text-xs">{t('search.scopeHint')}</p>
+        </fieldset>
 
         <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-4">
           <FormField id="s-type" label={t('search.type')}>
@@ -177,9 +212,14 @@ export default function SearchPage() {
       ) : (
         <section aria-live="polite" className="flex flex-col gap-4">
           <p className="font-semibold">{t('search.results', { count: results.data.totalElements })}</p>
-          <ul className="grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-4">
+          <ul className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4">
             {results.data.content.map((d) => (
-              <ResultCard key={d.id} doc={d} />
+              <ResultCard
+                key={d.id}
+                doc={d}
+                query={query.q}
+                className={d.hits.length ? 'sm:col-span-2' : undefined}
+              />
             ))}
           </ul>
           {results.data.totalPages > 1 && (
@@ -215,13 +255,26 @@ export default function SearchPage() {
   );
 }
 
-function ResultCard({ doc }: { doc: DocumentSummary }) {
+function ResultCard({
+  doc,
+  query,
+  className,
+}: {
+  doc: DocumentSummary;
+  query: string | undefined;
+  className?: string | undefined;
+}) {
   const { t } = useTranslation();
   const [info, setInfo] = useState(false);
   const infoId = `info-${doc.id}`;
 
   return (
-    <li className="border-line bg-surface hover:border-primary/40 relative flex min-h-56 flex-col rounded-xl border">
+    <li
+      className={cn(
+        'border-line bg-surface hover:border-primary/40 relative flex min-h-56 flex-col rounded-xl border',
+        className,
+      )}
+    >
       <div className="bg-bg flex items-center justify-between rounded-t-xl px-4 py-3">
         <Badge tone="info">{doc.typeName ?? '—'}</Badge>
         <button
@@ -244,6 +297,40 @@ function ResultCard({ doc }: { doc: DocumentSummary }) {
           </Link>
         </h2>
         <p className="text-muted text-[13px]">{doc.nodeTitle}</p>
+        {doc.hits.length > 0 && (
+          <ul aria-label={t('search.hits')} className="flex flex-col gap-2 py-1">
+            {doc.hits.map((h) => (
+              <li
+                key={h.page}
+                className="bg-bg flex flex-wrap items-start gap-x-3 gap-y-1 rounded-lg px-3 py-2"
+              >
+                <span className="text-info inline-flex shrink-0 items-center gap-1 pt-px text-xs font-semibold">
+                  <ScanText aria-hidden="true" className="size-3.5" />
+                  {t('search.page', { n: h.page })}
+                </span>
+                <p dir="auto" className="text-ink-soft min-w-0 flex-[1_1_240px] text-[13px] leading-relaxed">
+                  …{' '}
+                  {snippetParts(h.snippet).map((part, i) =>
+                    part.match ? (
+                      <mark key={i} className="text-ink rounded-sm bg-[#FDE68A] px-0.5">
+                        {part.text}
+                      </mark>
+                    ) : (
+                      <span key={i}>{part.text}</span>
+                    ),
+                  )}{' '}
+                  …
+                </p>
+                <Link
+                  to={`/documents/${doc.id}?${new URLSearchParams({ page: String(h.page), q: query ?? '' }).toString()}`}
+                  className="shrink-0 text-xs whitespace-nowrap"
+                >
+                  {t('search.openAt', { n: h.page })}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
         <div className="text-muted mt-auto flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
           <span className="text-ink-soft font-mono">{doc.reference}</span>
           <span>{formatDate(doc.documentDate)}</span>

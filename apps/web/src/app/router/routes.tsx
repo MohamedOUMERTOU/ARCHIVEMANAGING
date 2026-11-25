@@ -19,6 +19,7 @@ const RulesSettings = lazy(() => import('@/features/settings/pages/RulesSettings
 const TagsSettings = lazy(() => import('@/features/settings/pages/TagsSettings'));
 const UsersSettings = lazy(() => import('@/features/settings/pages/UsersSettings'));
 const StorageSettings = lazy(() => import('@/features/settings/pages/StorageSettings'));
+const OcrSettings = lazy(() => import('@/features/settings/pages/OcrSettings'));
 const PhysicalLayout = lazy(() => import('@/features/physical/pages/PhysicalLayout'));
 const LocationsPage = lazy(() => import('@/features/physical/pages/LocationsPage'));
 const LoansPage = lazy(() => import('@/features/physical/pages/LoansPage'));
@@ -72,6 +73,7 @@ export const routes: RouteObject[] = [
               { path: 'tags', element: <TagsSettings /> },
               { path: 'utilisateurs', element: <UsersSettings /> },
               { path: 'stockage', element: <StorageSettings /> },
+              { path: 'ocr', element: <OcrSettings /> },
             ],
           },
           {

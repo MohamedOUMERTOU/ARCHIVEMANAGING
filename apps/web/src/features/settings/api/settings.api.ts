@@ -138,6 +138,52 @@ const del = async (url: string) => {
   await http.delete(url);
 };
 
+/** Reconnaissance de texte (OCR) : réglages de la société */
+export interface OcrSettings {
+  autoOnUpload: boolean;
+  languages: string[];
+  detectOrientation: boolean;
+  searchablePdfDownload: boolean;
+  paused: boolean;
+  availableLanguages: string[];
+  /** Tesseract répond sur le serveur */
+  engineAvailable: boolean;
+}
+export type OcrSettingsInput = Pick<
+  OcrSettings,
+  'autoOnUpload' | 'languages' | 'detectOrientation' | 'searchablePdfDownload'
+>;
+
+export type OcrJobStatus = 'EN_ATTENTE' | 'EN_COURS' | 'TERMINE' | 'PEU_LISIBLE' | 'ECHEC';
+
+export interface OcrOverview {
+  progress: {
+    /** Documents dont la version actuelle peut être lue */
+    eligible: number;
+    done: number;
+    pending: number;
+    running: number;
+    failed: number;
+    lowQuality: number;
+    /** Jamais demandés (déposés avant l'OCR, ou lecture automatique désactivée) */
+    notRequested: number;
+    paused: boolean;
+  };
+  recent: Array<{
+    documentId: string;
+    reference: string | null;
+    title: string;
+    versionNo: number;
+    status: OcrJobStatus;
+    pagesTotal: number | null;
+    pagesDone: number;
+    confidence: number | null;
+    error: string | null;
+    requestedAt: string;
+    finishedAt: string | null;
+  }>;
+}
+
 export const settingsApi = {
   rules: () => get<RetentionRule[]>(`${S}/retention-rules`),
   createRule: (input: RuleInput) => post<RetentionRule>(`${S}/retention-rules`, input),
@@ -173,6 +219,13 @@ export const settingsApi = {
   storage: () => get<StorageStatus>(`${S}/storage`),
   checkStorage: () => post<StorageCheck>(`${S}/storage/check`),
 
+  ocr: () => get<OcrSettings>(`${S}/ocr`),
+  updateOcr: (input: OcrSettingsInput) => put<OcrSettings>(`${S}/ocr`, input),
+  pauseOcr: (paused: boolean) => post<OcrSettings>(`${S}/ocr/pause`, { paused }),
+  ocrOverview: () => get<OcrOverview>(`${S}/ocr/overview`),
+  ocrBackfill: () => post<OcrOverview>(`${S}/ocr/backfill`),
+  ocrRetryFailed: () => post<OcrOverview>(`${S}/ocr/retry-failed`),
+
   node: (id: string) => get<NodeDetail>(`/classification/${id}`),
   createNode: (input: NodeInput) => post<NodeDetail>('/classification', input),
   updateNode: (id: string, input: NodeInput) => patch<NodeDetail>(`/classification/${id}`, input),
@@ -190,5 +243,7 @@ export const settingsKeys = {
   roles: ['settings', 'roles'] as const,
   permissions: ['settings', 'permissions'] as const,
   storage: ['settings', 'storage'] as const,
+  ocr: ['settings', 'ocr'] as const,
+  ocrOverview: ['settings', 'ocr', 'overview'] as const,
   node: (id: string) => ['settings', 'node', id] as const,
 };

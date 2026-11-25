@@ -20,6 +20,8 @@
   <properties>
     <java.version>17</java.version>
     <aws-sdk.version>2.59.7</aws-sdk.version>
+    <pdfbox.version>3.0.8</pdfbox.version>
+    <jbig2.version>3.0.5</jbig2.version>
   </properties>
 
   <dependencyManagement>
@@ -46,6 +48,18 @@
           <artifactId>netty-nio-client</artifactId>
         </exclusion>
       </exclusions>
+    </dependency>
+    <!-- Lecture des PDF (texte, rendu des pages scannées, couche de texte reconnu) ; licence Apache 2.0 -->
+    <dependency>
+      <groupId>org.apache.pdfbox</groupId>
+      <artifactId>pdfbox</artifactId>
+      <version>${pdfbox.version}</version>
+    </dependency>
+    <dependency>
+      <!-- Images JBIG2, fréquentes dans les PDF produits par les scanners -->
+      <groupId>org.apache.pdfbox</groupId>
+      <artifactId>jbig2-imageio</artifactId>
+      <version>${jbig2.version}</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>

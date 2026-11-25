@@ -6,4 +6,5 @@ export const SETTINGS_TABS = [
   { to: 'tags', label: 'Tags', permission: 'settings.manage' },
   { to: 'utilisateurs', label: 'Utilisateurs & rôles', permission: 'settings.manage' },
   { to: 'stockage', label: 'Stockage', permission: 'settings.manage' },
+  { to: 'ocr', label: 'Reconnaissance de texte', permission: 'settings.manage' },
 ] as const;

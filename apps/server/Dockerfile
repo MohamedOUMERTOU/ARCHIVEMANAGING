@@ -9,8 +9,10 @@ RUN mvn -B -q package -DskipTests
 
 # ── Étape 2 : exécution (JRE seul, utilisateur non root) ──
 FROM eclipse-temurin:25-jre
+# Tesseract (reconnaissance de texte) : français, arabe, anglais, et détection de l'orientation des pages
 RUN apt-get update \
     && apt-get install -y --no-install-recommends curl \
+       tesseract-ocr tesseract-ocr-fra tesseract-ocr-ara tesseract-ocr-eng tesseract-ocr-osd fonts-dejavu-core \
     && rm -rf /var/lib/apt/lists/* \
     && useradd --system --uid 10001 --home /app ged \
     && mkdir -p /data/storage \

@@ -9,6 +9,7 @@ import com.ged.classification.ClassificationService;
 import com.ged.common.ApiException;
 import com.ged.common.Json;
 import com.ged.document.DocumentDtos.*;
+import com.ged.ocr.OcrQueue;
 import com.ged.retention.RetentionPolicy;
 import com.ged.retention.RetentionRule;
 import com.ged.retention.RetentionRuleRepository;
@@ -31,6 +32,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -63,14 +65,16 @@ public class DocumentService {
     private final ViewTokenService viewTokens;
     private final com.ged.physical.LocationPaths locationPaths;
     private final RetentionPolicy retention;
+    private final OcrQueue ocr;
 
     public DocumentService(DocumentRepositories.Documents documents, DocumentRepositories.Versions versions,
                            DocumentRepositories.Events events, DocumentRepositories.Types types,
                            RetentionRuleRepository rules, UserRepository users, ClassificationService classification,
                            FileStorage storage, CurrentUserProvider currentUser, AuditService audit,
                            NamedParameterJdbcTemplate jdbc, Json json, ViewTokenService viewTokens,
-                           com.ged.physical.LocationPaths locationPaths, RetentionPolicy retention) {
+                           com.ged.physical.LocationPaths locationPaths, RetentionPolicy retention, OcrQueue ocr) {
         this.retention = retention;
+        this.ocr = ocr;
         this.viewTokens = viewTokens;
         this.locationPaths = locationPaths;
         this.documents = documents;
@@ -232,18 +236,24 @@ public class DocumentService {
     /** Formats qu'un navigateur affiche sans risque ; les autres ne sont proposés qu'en téléchargement. */
     public static final Set<String> PREVIEWABLE = Set.of("application/pdf", "image/png", "image/jpeg", "image/gif", "image/webp");
 
-    /** Lien d'aperçu à durée limitée, vérifié contre les droits de l'utilisateur au moment de la demande. */
+    /**
+     * Lien d'aperçu à durée limitée, vérifié contre les droits de l'utilisateur au moment de la demande.
+     * Si le texte d'un scan a été reconnu, l'aperçu montre la copie PDF qui porte ce texte (même aspect,
+     * recherche possible) : c'est aussi ce qui rend affichables les formats d'image comme le TIFF.
+     */
     @Transactional(readOnly = true)
     public ViewLink viewLink(UUID id, int versionNo) {
         CurrentUser user = currentUser.get();
         ensureContentAvailable(find(user, id));
         DocumentVersion version = versions.findByDocumentIdAndVersionNo(id, versionNo)
                 .orElseThrow(() -> ApiException.notFound("Version"));
-        boolean previewable = PREVIEWABLE.contains(version.getMimeType());
-        if (!previewable) return new ViewLink(null, version.getMimeType(), false, null);
+        boolean copy = ocr.copyOf(version.getId()).isPresent();
+        if (!copy && !PREVIEWABLE.contains(version.getMimeType())) {
+            return new ViewLink(null, version.getMimeType(), false, null, false);
+        }
         String token = viewTokens.create(id, versionNo, user.id());
         return new ViewLink("/api/documents/%s/versions/%d/view?token=%s".formatted(id, versionNo, token),
-                version.getMimeType(), true, viewTokens.expiresAt(token));
+                copy ? "application/pdf" : version.getMimeType(), true, viewTokens.expiresAt(token), copy);
     }
 
     /**
@@ -251,7 +261,7 @@ public class DocumentService {
      * ou un document devenu inaccessible entre-temps est refusé même avec un jeton valide.
      */
     @Transactional
-    public Download openView(UUID id, int versionNo, String token) {
+    public View openView(UUID id, int versionNo, String token) {
         ViewTokenService.Claims claims = viewTokens.verify(token);
         if (!claims.documentId().equals(id) || claims.versionNo() != versionNo) {
             throw new ApiException(HttpStatus.UNAUTHORIZED, "BAD_VIEW_TOKEN", "Lien de visualisation invalide ou expiré");
@@ -264,7 +274,8 @@ public class DocumentService {
         ensureContentAvailable(doc);
         DocumentVersion version = versions.findByDocumentIdAndVersionNo(id, versionNo)
                 .orElseThrow(() -> ApiException.notFound("Version"));
-        if (!PREVIEWABLE.contains(version.getMimeType())) {
+        Optional<OcrQueue.Copy> copy = ocr.copyOf(version.getId());
+        if (copy.isEmpty() && !PREVIEWABLE.contains(version.getMimeType())) {
             throw ApiException.badRequest("NOT_PREVIEWABLE", "Ce format ne peut pas être affiché : téléchargez-le");
         }
         // Le visualiseur PDF du navigateur envoie plusieurs requêtes (pages, défilement) : une seule trace par 10 minutes
@@ -274,10 +285,24 @@ public class DocumentService {
             audit.log(user.organizationId(), user.id(), "DOCUMENT_VISUALISE", "document", id.toString(),
                     Map.of("version", versionNo), null);
         }
-        return new Download(version, storage.load(version.getStorageKey()));
+        if (copy.isPresent()) {
+            return new View(storage.load(copy.get().key()), "application/pdf", pdfName(version.getFilename()), copy.get().size());
+        }
+        return new View(storage.load(version.getStorageKey()), version.getMimeType(), version.getFilename(),
+                version.getSizeBytes());
     }
 
-    public record ViewLink(String url, String mimeType, boolean previewable, Instant expiresAt) {}
+    /** Contenu servi à l'aperçu : le fichier d'origine, ou sa copie consultable. */
+    public record View(org.springframework.core.io.Resource resource, String mimeType, String filename, long size) {}
+
+    /** @param textLayer l'aperçu est la copie portant le texte reconnu (scan, image) */
+    public record ViewLink(String url, String mimeType, boolean previewable, Instant expiresAt, boolean textLayer) {}
+
+    /** « scan.tiff » → « scan.pdf » : nom de la copie consultable. */
+    public static String pdfName(String filename) {
+        int dot = filename.lastIndexOf('.');
+        return (dot > 0 ? filename.substring(0, dot) : filename) + ".pdf";
+    }
 
     // ───────── Demandes ─────────
 
@@ -345,12 +370,20 @@ public class DocumentService {
             where.append(" AND n.id_path LIKE :prefix");
             params.addValue("prefix", node.getIdPath() + "%");
         }
-        if (query.q() != null && !query.q().isBlank()) {
-            where.append("""
-                     AND (d.title ILIKE :q OR d.reference ILIKE :q OR d.metadata::text ILIKE :q
-                          OR EXISTS (SELECT 1 FROM document_aliases a WHERE a.document_id = d.id AND a.old_reference ILIKE :q))
-                    """);
-            params.addValue("q", "%" + escapeLike(query.q().trim()) + "%");
+        String q = query.q() == null ? "" : query.q().trim();
+        boolean hasQ = !q.isEmpty();
+        // « meta » : titre, cote, métadonnées ; « content » : texte des fichiers ; sinon les deux
+        String scope = "meta".equals(query.in()) || "content".equals(query.in()) ? query.in() : "all";
+        if (hasQ) {
+            String meta = """
+                    (d.title ILIKE :q OR d.reference ILIKE :q OR d.metadata::text ILIKE :q
+                     OR EXISTS (SELECT 1 FROM document_aliases a WHERE a.document_id = d.id AND a.old_reference ILIKE :q))""";
+            where.append(" AND ").append(switch (scope) {
+                case "meta" -> meta;
+                case "content" -> TEXT_MATCH;
+                default -> "(" + meta + " OR " + TEXT_MATCH + ")";
+            });
+            params.addValue("q", "%" + escapeLike(q) + "%").addValue("fts", q);
         }
         if (query.from() != null) {
             where.append(" AND d.document_date >= :from");
@@ -378,7 +411,14 @@ public class DocumentService {
         Long total = jdbc.queryForObject("SELECT count(*)" + from + where, params, Long.class);
         int size = Math.min(Math.max(query.size(), 1), 100);
         int page = Math.max(query.page(), 0);
-        String order = switch (query.sort() == null ? "" : query.sort()) {
+        String sort = query.sort() == null ? "" : query.sort();
+        String order = switch (hasQ || !"relevance".equals(sort) ? sort : "") {
+            // Un mot du titre ou de la cote passe devant ; ensuite, le poids du mot dans le texte
+            case "relevance" -> """
+                    (CASE WHEN d.title ILIKE :q OR d.reference ILIKE :q THEN 2 ELSE 0 END
+                     + coalesce((SELECT ts_rank(dt.tsv, websearch_to_tsquery('ged_fr', :fts))
+                                 FROM document_texts dt WHERE dt.version_id = lv.id), 0)) DESC,
+                    d.document_date DESC NULLS LAST""";
             case "title" -> "d.title ASC";
             case "reference" -> "d.reference ASC NULLS LAST";
             case "created" -> "d.created_at DESC";
@@ -393,12 +433,57 @@ public class DocumentService {
                        COALESCE((SELECT array_agg(tg.name ORDER BY tg.name) FROM document_tags dt
                                  JOIN tags tg ON tg.id = dt.tag_id WHERE dt.document_id = d.id), '{}') AS tags
                 """ + from + """
-                 LEFT JOIN LATERAL (SELECT filename, mime_type, size_bytes FROM document_versions v
+                 LEFT JOIN LATERAL (SELECT id, filename, mime_type, size_bytes FROM document_versions v
                                     WHERE v.document_id = d.id ORDER BY version_no DESC LIMIT 1) lv ON true
                 """ + where + " ORDER BY " + order + " LIMIT :limit OFFSET :offset",
                 params, (rs, i) -> summary(rs));
+        if (hasQ && !"meta".equals(scope) && !content.isEmpty()) content = withTextHits(content, q);
         long totalElements = total == null ? 0 : total;
         return new PageDto<>(content, totalElements, (int) Math.ceil(totalElements / (double) size), page, size);
+    }
+
+    /**
+     * Les mots cherchés figurent dans le texte de la version actuelle (texte du fichier ou reconnu),
+     * sur une même page ou non : la condition porte sur l'index du document entier.
+     */
+    private static final String TEXT_MATCH = """
+            EXISTS (SELECT 1 FROM document_texts dt
+                    WHERE dt.document_id = d.id AND d.status <> 'ELIMINE'
+                      AND dt.version_id = (SELECT v2.id FROM document_versions v2 WHERE v2.document_id = d.id
+                                           ORDER BY v2.version_no DESC LIMIT 1)
+                      AND dt.tsv @@ websearch_to_tsquery('ged_fr', :fts))""";
+
+    /**
+     * Ajoute à chaque résultat les deux pages où les mots pèsent le plus, avec un extrait. Une page compte dès
+     * qu'elle contient l'un des mots (« a b » trouvés sur deux pages : les deux sont citées). Les mots trouvés
+     * sont encadrés par les caractères U+0002 et U+0003 (jamais présents dans le texte enregistré) :
+     * le front les met en évidence sans interpréter de HTML.
+     */
+    private List<DocumentSummary> withTextHits(List<DocumentSummary> docs, String q) {
+        Map<UUID, List<TextHit>> hits = new LinkedHashMap<>();
+        jdbc.query("""
+                SELECT document_id, page_no,
+                       ts_headline('ged_fr', content, q, 'StartSel=' || chr(2) || ', StopSel=' || chr(3)
+                                   || ', MaxWords=26, MinWords=12, ShortWord=2, MaxFragments=1') AS snippet
+                FROM (SELECT dt.document_id, p.page_no, p.content, fq.q,
+                             row_number() OVER (PARTITION BY dt.document_id ORDER BY ts_rank(p.tsv, fq.q) DESC, p.page_no) AS rn
+                      FROM document_texts dt
+                      JOIN document_text_pages p ON p.text_id = dt.id
+                      -- « a & b & !c » devient « a | b » : mots exclus retirés, un seul mot suffit sur la page
+                      CROSS JOIN (SELECT CASE WHEN querytree(w) = 'T' THEN NULL
+                                              ELSE CAST(replace(querytree(w), ' & ', ' | ') AS tsquery) END AS q
+                                  FROM websearch_to_tsquery('ged_fr', :fts) AS w) fq
+                      WHERE dt.document_id IN (:ids)
+                        AND dt.version_id = (SELECT v.id FROM document_versions v WHERE v.document_id = dt.document_id
+                                             ORDER BY v.version_no DESC LIMIT 1)
+                        AND p.tsv @@ fq.q) x
+                WHERE rn <= 2 ORDER BY document_id, rn""",
+                new MapSqlParameterSource().addValue("fts", q).addValue("ids", docs.stream().map(DocumentSummary::id).toList()),
+                rs -> {
+                    hits.computeIfAbsent(rs.getObject("document_id", UUID.class), k -> new ArrayList<>())
+                            .add(new TextHit(rs.getInt("page_no"), rs.getString("snippet").replaceAll("\\s+", " ").strip()));
+                });
+        return docs.stream().map(d -> hits.containsKey(d.id()) ? d.withHits(hits.get(d.id())) : d).toList();
     }
 
     @Transactional(readOnly = true)
@@ -413,6 +498,41 @@ public class DocumentService {
     public List<String> listTags() {
         return jdbc.queryForList("SELECT name FROM tags WHERE organization_id = :org ORDER BY name",
                 Map.of("org", currentUser.get().organizationId()), String.class);
+    }
+
+    // ───────── Pour les autres modules (texte reconnu) ─────────
+
+    /** Version d'un document que l'utilisateur courant peut lire, contenu encore disponible. */
+    public record ReadableVersion(CurrentUser user, Document document, DocumentVersion version) {}
+
+    /** Mêmes règles d'accès que la fiche et l'aperçu ; {@code versionNo} null : la version actuelle. */
+    @Transactional(readOnly = true)
+    public ReadableVersion readableVersion(UUID id, Integer versionNo) {
+        CurrentUser user = currentUser.get();
+        Document doc = find(user, id);
+        ensureContentAvailable(doc);
+        DocumentVersion version = (versionNo == null
+                ? versions.findFirstByDocumentIdOrderByVersionNoDesc(id)
+                : versions.findByDocumentIdAndVersionNo(id, versionNo))
+                .orElseThrow(() -> ApiException.notFound("Version"));
+        return new ReadableVersion(user, doc, version);
+    }
+
+    /**
+     * Trace une consultation ou un téléchargement fait ailleurs (texte reconnu, copie consultable).
+     * Une consultation n'est inscrite qu'une fois par 10 minutes et par personne, comme pour la fiche.
+     */
+    @Transactional
+    public void traceAccess(ReadableVersion r, DocumentEventType type, String mode, String auditAction) {
+        CurrentUser user = r.user();
+        Document doc = r.document();
+        if (type == DocumentEventType.CONSULTE && events.existsByDocumentIdAndActorIdAndTypeAndAtAfter(doc.getId(),
+                user.id(), DocumentEventType.CONSULTE, Instant.now().minus(CONSULT_DEDUP))) {
+            return;
+        }
+        Map<String, Object> details = Map.of("version", r.version().getVersionNo(), "mode", mode);
+        record(user, doc, type, null, null, null, details);
+        audit.log(user.organizationId(), user.id(), auditAction, "document", doc.getId().toString(), details, null);
     }
 
     // ───────── Interne ─────────
@@ -436,7 +556,12 @@ public class DocumentService {
             throw new UncheckedIOException(e);
         }
         String mime = file.getContentType() == null ? "application/octet-stream" : file.getContentType();
-        return versions.save(new DocumentVersion(doc.getId(), no, stored, filename, mime, reason, user.id()));
+        // Écrit tout de suite (document et version) : la demande de lecture, en SQL, y fait référence
+        DocumentVersion saved = versions.saveAndFlush(
+                new DocumentVersion(doc.getId(), no, stored, filename, mime, reason, user.id()));
+        // Lecture du texte (OCR si besoin) en arrière-plan, si la société l'a activée
+        ocr.onNewVersion(user.organizationId(), doc.getId(), saved.getId(), mime);
+        return saved;
     }
 
     private void record(CurrentUser user, Document doc, DocumentEventType type, String onBehalfOf, String reason,
@@ -611,7 +736,7 @@ public class DocumentService {
                 rs.getString("node_title"), rs.getObject("retention_until", LocalDate.class), rs.getBoolean("legal_hold"),
                 rs.getTimestamp("created_at").toInstant(), rs.getInt("version_count"), rs.getString("filename"),
                 rs.getString("mime_type"), size,
-                tags == null ? List.of() : Arrays.asList((String[]) tags.getArray()));
+                tags == null ? List.of() : Arrays.asList((String[]) tags.getArray()), List.of());
     }
 
     /** Map acceptant les valeurs null (Map.of les refuse) ; dates et UUID passent en texte, comme en JSON. */

@@ -38,6 +38,45 @@ export interface DocumentSummary {
   mimeType: string | null;
   sizeBytes: number | null;
   tags: string[];
+  /** Pages où le mot cherché figure dans le texte du fichier (recherche dans le contenu) */
+  hits: TextHit[];
+}
+
+/** Extrait du texte : les mots trouvés sont encadrés par U+0002 et U+0003 (voir utils/snippet) */
+export interface TextHit {
+  page: number;
+  snippet: string;
+}
+
+/**
+ * Texte d'une version. AUCUN : jamais lu (dépôt antérieur à l'OCR ou lecture automatique désactivée).
+ * method : NATIF (texte déjà dans le fichier), OCR (reconnu sur l'image), MIXTE (les deux).
+ */
+export type TextState = 'AUCUN' | 'EN_ATTENTE' | 'EN_COURS' | 'TERMINE' | 'PEU_LISIBLE' | 'ECHEC';
+
+export interface TextStatus {
+  versionNo: number;
+  supported: boolean;
+  status: TextState;
+  method: 'NATIF' | 'OCR' | 'MIXTE' | null;
+  languages: string[];
+  pagesTotal: number | null;
+  pagesDone: number;
+  /** Lisibilité moyenne des pages reconnues, en % */
+  confidence: number | null;
+  error: string | null;
+  requestedAt: string | null;
+  finishedAt: string | null;
+  /** Demandes à traiter avant celle-ci */
+  queuePosition: number | null;
+  searchableCopy: boolean;
+  copyDownloadable: boolean;
+  hasText: boolean;
+}
+
+export interface TextPage {
+  page: number;
+  content: string;
 }
 
 export interface VersionDto {
@@ -151,7 +190,9 @@ export interface SearchParams {
   locationId?: string;
   page?: number;
   size?: number;
-  sort?: 'date' | 'title' | 'reference' | 'created';
+  sort?: 'relevance' | 'date' | 'title' | 'reference' | 'created';
+  /** Où chercher les mots : titre, cote et métadonnées, texte des fichiers, ou les deux (défaut) */
+  in?: 'meta' | 'content';
 }
 
 export interface ClassifyInput {
@@ -171,4 +212,6 @@ export interface ViewLink {
   mimeType: string;
   previewable: boolean;
   expiresAt: string | null;
+  /** L'aperçu est une copie PDF portant le texte reconnu (scan, image) : même aspect, recherche possible */
+  textLayer: boolean;
 }

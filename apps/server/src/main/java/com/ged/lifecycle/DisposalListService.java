@@ -294,10 +294,20 @@ public class DisposalListService {
                 SELECT d.id, loc.id_path AS loc_path FROM disposal_list_items i JOIN documents d ON d.id = i.document_id
                 LEFT JOIN physical_locations loc ON loc.id = d.physical_location_id WHERE i.list_id = :id""", params("id", id));
         List<UUID> ids = docs.stream().map(d -> (UUID) d.get("id")).toList();
+        // Fichiers à détruire : chaque version, et sa copie portant le texte reconnu
         List<String> keys = elimination
-                ? jdbc.queryForList("SELECT storage_key FROM document_versions WHERE document_id IN (:ids)",
+                ? jdbc.queryForList("""
+                        SELECT storage_key FROM document_versions WHERE document_id IN (:ids)
+                        UNION ALL
+                        SELECT searchable_key FROM document_texts WHERE document_id IN (:ids) AND searchable_key IS NOT NULL""",
                         params("ids", ids), String.class)
                 : List.of();
+        if (elimination) {
+            // Le texte lu dans les fichiers fait partie du contenu : détruit avec lui (la demande reste, sans texte)
+            jdbc.update("""
+                    DELETE FROM document_text_pages WHERE text_id IN (SELECT id FROM document_texts WHERE document_id IN (:ids))""",
+                    params("ids", ids));
+        }
 
         jdbc.update("""
                 UPDATE documents SET status = :status, disposed_at = now(), physical_location_id = NULL, updated_at = now()

@@ -64,4 +64,30 @@ EOF
   mc admin policy attach ged ged-disposal --user "$S3_DISPOSAL_ACCESS_KEY" >/dev/null 2>&1 || true
 fi
 
+# Compte de sauvegarde : lecture seule (lister et lire), utilisé par le service « backup »
+if [ -n "${S3_BACKUP_SECRET_KEY:-}" ]; then
+  cat > /tmp/ged-backup-policy.json <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "ListerLeBucket",
+      "Effect": "Allow",
+      "Action": ["s3:ListBucket", "s3:GetBucketLocation"],
+      "Resource": ["arn:aws:s3:::$S3_BUCKET"]
+    },
+    {
+      "Sid": "LireLesDocuments",
+      "Effect": "Allow",
+      "Action": ["s3:GetObject"],
+      "Resource": ["arn:aws:s3:::$S3_BUCKET/*"]
+    }
+  ]
+}
+EOF
+  mc admin policy create ged ged-backup /tmp/ged-backup-policy.json
+  mc admin user add ged "$S3_BACKUP_ACCESS_KEY" "$S3_BACKUP_SECRET_KEY"
+  mc admin policy attach ged ged-backup --user "$S3_BACKUP_ACCESS_KEY" >/dev/null 2>&1 || true
+fi
+
 echo "MinIO prêt : bucket « $S3_BUCKET », comptes « $S3_ACCESS_KEY »${S3_DISPOSAL_SECRET_KEY:+ et « $S3_DISPOSAL_ACCESS_KEY »}"

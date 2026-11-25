@@ -56,6 +56,7 @@ Après un passage à Node 24 (`nvm install 24 && nvm use 24`), on pourra les met
 | Paquet | Quand |
 |---|---|
 | ag-grid-community, ag-grid-react, @ag-grid-community/locale (v36, Community, licence MIT) | **Installé** : toutes les grilles (documents, audit, prêts, règles, tags, utilisateurs) via `components/shared/DataGrid.tsx` : tri, filtres de colonne, filtre rapide, pagination, export CSV, thème aux couleurs de l'application, textes en français. Chargé dans un fichier à part (`ag-grid-*.js`). Les modules Enterprise (licence payante) ne sont pas utilisés |
+| pdfjs-dist 6.5 (pdf.js, licence Apache 2.0) | **Installé** : visionneuse de la page document (`features/documents/components/viewer/`) : défilement continu, vignettes, zoom, ajustement, rotation, recherche surlignée (Ctrl+F). Chargé à la demande (~1 Mo, plus le worker). Polices, tables de caractères et décodeurs wasm sont servis par l'application sous `/pdfjs/` (plugin `ged-pdfjs-assets` de `vite.config.ts`) ; la politique de sécurité autorise `wasm-unsafe-eval` pour ces décodeurs, et nginx sert les `.mjs` en JavaScript. Le paquet annonce Node 22+, mais il ne s'exécute que dans le navigateur (l'image Docker construit en Node 22) ; les tests remplacent la visionneuse par une doublure |
 | react-dropzone | **Installé** : écran « À classer » |
 | date-fns | **Installé** : dates en français |
 | @radix-ui/react-dialog | **Installé** : nouvelle version, demandes, reclassement |

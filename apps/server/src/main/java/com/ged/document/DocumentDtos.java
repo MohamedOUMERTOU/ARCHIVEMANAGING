@@ -17,7 +17,15 @@ public final class DocumentDtos {
     public record DocumentSummary(UUID id, String reference, String title, DocumentStatus status, LocalDate documentDate,
                                   UUID typeId, String typeName, UUID nodeId, String nodeTitle, LocalDate retentionUntil,
                                   boolean legalHold, Instant createdAt, int versionCount, String filename,
-                                  String mimeType, Long sizeBytes, List<String> tags) {}
+                                  String mimeType, Long sizeBytes, List<String> tags, List<TextHit> hits) {
+        public DocumentSummary withHits(List<TextHit> h) {
+            return new DocumentSummary(id, reference, title, status, documentDate, typeId, typeName, nodeId, nodeTitle,
+                    retentionUntil, legalHold, createdAt, versionCount, filename, mimeType, sizeBytes, tags, h);
+        }
+    }
+
+    /** Page où le mot cherché a été trouvé, avec un extrait (mots trouvés entre U+0002 et U+0003). */
+    public record TextHit(int page, String snippet) {}
 
     public record TypeRef(UUID id, String code, String name, List<Map<String, Object>> metadataSchema) {}
 
@@ -61,5 +69,5 @@ public final class DocumentDtos {
     public enum RequestKind { COPIE_SIMPLE, COPIE_CERTIFIEE, ORIGINAL }
 
     public record SearchQuery(String q, DocumentStatus status, UUID typeId, UUID nodeId, LocalDate from, LocalDate to,
-                              String tag, int page, int size, String sort, UUID locationId) {}
+                              String tag, int page, int size, String sort, UUID locationId, String in) {}
 }

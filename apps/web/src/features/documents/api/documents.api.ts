@@ -9,6 +9,8 @@ import type {
   DocumentTypeRef,
   RequestKind,
   SearchParams,
+  TextPage,
+  TextStatus,
   UploadResult,
   ViewLink,
 } from '../types';
@@ -58,20 +60,29 @@ export const documentsApi = {
   },
   /** Le fichier passe par axios (jeton dans l'en-tête), puis le navigateur le propose au téléchargement. */
   download: async (id: string, versionNo: number, filename: string): Promise<void> => {
-    const { data } = await http.get<Blob>(endpoints.documents.content(id, versionNo), {
-      responseType: 'blob',
-      timeout: 0,
+    await saveFrom(endpoints.documents.content(id, versionNo), filename);
+  },
+  /** Copie PDF portant le texte reconnu (si le paramétrage l'autorise) */
+  downloadSearchable: async (id: string, versionNo: number, filename: string): Promise<void> => {
+    await saveFrom(endpoints.documents.searchable(id, versionNo), filename);
+  },
+  text: async (id: string, versionNo: number): Promise<TextStatus> => {
+    const { data } = await http.get<TextStatus>(endpoints.documents.text(id), {
+      params: { version: versionNo },
     });
-    const url = URL.createObjectURL(data);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    setTimeout(() => {
-      URL.revokeObjectURL(url);
-    }, 1000);
+    return data;
+  },
+  textPages: async (id: string, versionNo: number): Promise<TextPage[]> => {
+    const { data } = await http.get<TextPage[]>(endpoints.documents.textPages(id), {
+      params: { version: versionNo },
+    });
+    return data;
+  },
+  retryText: async (id: string, versionNo: number): Promise<TextStatus> => {
+    const { data } = await http.post<TextStatus>(endpoints.documents.textRetry(id), null, {
+      params: { version: versionNo },
+    });
+    return data;
   },
   viewLink: async (id: string, versionNo: number): Promise<ViewLink> => {
     const { data } = await http.post<ViewLink>(endpoints.documents.viewLink(id, versionNo));
@@ -87,11 +98,27 @@ export const documentsApi = {
   },
 };
 
+async function saveFrom(path: string, filename: string): Promise<void> {
+  const { data } = await http.get<Blob>(path, { responseType: 'blob', timeout: 0 });
+  const url = URL.createObjectURL(data);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  setTimeout(() => {
+    URL.revokeObjectURL(url);
+  }, 1000);
+}
+
 export const documentKeys = {
   all: ['documents'] as const,
   search: (params: SearchParams) => [...documentKeys.all, 'search', params] as const,
   detail: (id: string) => [...documentKeys.all, 'detail', id] as const,
   events: (id: string) => [...documentKeys.all, 'events', id] as const,
+  text: (id: string, versionNo: number) => [...documentKeys.all, 'text', id, versionNo] as const,
+  textPages: (id: string, versionNo: number) => [...documentKeys.all, 'text-pages', id, versionNo] as const,
   types: ['document-types'] as const,
   tags: ['tags'] as const,
 };
